@@ -3,30 +3,70 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Our Portfolio Site</title>
+  <title>Team Ford | HNR 241 Fall 2026</title>
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to main content</a>
 
   <header class="site-header">
-    <p class="site-title"><a href="index.html">Our Portfolio Site</a></p>
-    <nav aria-label="Main">
+    <p class="site-title"><a href="index.html">TEAM FORD<span aria-hidden="true"> / </span>HNR 241</a></p>
+    <nav aria-label="Main navigation">
       <ul>
-        <li><a href="index.html" aria-current="page">Home</a></li>
+        <li><a href="#team">The team</a></li>
+        <li><a href="#builds">Our builds</a></li>
+        <li><a href="#references">References</a></li>
       </ul>
     </nav>
   </header>
 
   <main id="main">
-    <h1>Welcome</h1>
-    <p>This is your group's starter site. Nothing here is final.</p>
-    <p>Fill in your planning Doc, then leave a comment that starts with
-      <code>@agent build</code> to have the agent replace this page with your own.</p>
+    <section class="hero" aria-labelledby="page-title">
+      <p class="eyebrow">University of Michigan <span aria-hidden="true">/</span> Honors 241 <span aria-hidden="true">/</span> Fall 2026</p>
+      <h1 id="page-title">Team Ford<span class="hero-period" aria-hidden="true">.</span></h1>
+      <p class="hero-copy">A record of what we imagine, make, and learn together. This portfolio follows Team Ford’s work throughout the Fall 2026 semester.</p>
+      <p class="hero-index"><span>FIELD NOTES</span><span>HNR 241 · 2026</span></p>
+    </section>
+
+    <section class="content-section" id="team" aria-labelledby="team-title">
+      <div class="section-heading">
+        <p class="eyebrow">01 <span aria-hidden="true">/</span> People</p>
+        <h2 id="team-title">The team</h2>
+      </div>
+      <p class="section-intro">The hosts and collaborators behind this semester’s work.</p>
+      <ul class="team-list">
+        <li>Tiham</li>
+        <li>Elijah</li>
+        <li>Erica</li>
+        <li>Amogh</li>
+        <li>Augustus</li>
+        <li>Grace</li>
+      </ul>
+    </section>
+
+    <section class="content-section" id="builds" aria-labelledby="builds-title">
+      <div class="section-heading">
+        <p class="eyebrow">02 <span aria-hidden="true">/</span> Work</p>
+        <h2 id="builds-title">Our builds</h2>
+      </div>
+      <article class="build-card">
+        <p class="card-label">Team project archive <span aria-hidden="true">—</span> Fall 2026</p>
+        <h3>Built by all members.</h3>
+        <p>This portfolio will document the work Team Ford creates over the semester. Project details and supporting materials can be added here as the builds take shape.</p>
+      </article>
+    </section>
+
+    <section class="content-section references-section" id="references" aria-labelledby="references-title">
+      <div class="section-heading">
+        <p class="eyebrow">03 <span aria-hidden="true">/</span> Sources</p>
+        <h2 id="references-title">References</h2>
+      </div>
+      <p class="section-intro">No references were specified in the planning document. Sources can be listed here as they are used in the team’s work.</p>
+    </section>
   </main>
 
   <footer class="site-footer">
-    <p>Built by our group with help from an AI agent.</p>
+    <p>Team Ford <span aria-hidden="true">·</span> HNR 241 <span aria-hidden="true">·</span> University of Michigan</p>
   </footer>
 </body>
 </html>
