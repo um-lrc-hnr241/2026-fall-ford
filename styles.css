@@ -232,6 +232,31 @@ video {
   font-size: 1.15rem;
 }
 
+.team-gallery {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 2.5rem;
+}
+
+.team-image-card {
+  margin: 0;
+  color: var(--text);
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+.team-image-card svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--border);
+}
+
+.team-image-card figcaption {
+  padding-top: 0.5rem;
+}
+
 .build-card {
   max-width: 54rem;
   margin: 2.5rem 0 0 auto;
@@ -251,6 +276,14 @@ video {
   max-width: 42rem;
   margin-bottom: 0;
   color: var(--muted);
+}
+
+.build-card > p:not(.card-label) {
+  max-width: 48rem;
+  margin: 1.25rem 0 0;
+  color: var(--text);
+  font-size: 1.05rem;
+  line-height: 1.8;
 }
 
 .references-section {
@@ -287,7 +320,8 @@ video {
     margin-left: 0;
   }
 
-  .team-list {
+  .team-list,
+  .team-gallery {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
