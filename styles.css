@@ -122,6 +122,32 @@ video {
   background: var(--surface);
 }
 
+.home-page .hero {
+  width: 100vw;
+  min-height: 100vh;
+  margin-left: calc(50% - 50vw);
+  padding-right: max(1.25rem, calc((100vw - var(--max-width)) / 2 + 2rem));
+  padding-left: max(1.25rem, calc((100vw - var(--max-width)) / 2 + 2rem));
+  background: linear-gradient(rgb(20 18 17 / 72%), rgb(20 18 17 / 72%)), url("images/deepdream.jpg") center / cover no-repeat;
+}
+
+.home-feature {
+  max-width: 54rem;
+  margin: 3rem auto;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+.home-feature img {
+  display: block;
+  width: 100%;
+  border: 1px solid var(--border);
+}
+
+.home-feature figcaption {
+  padding-top: 0.65rem;
+}
+
 .hero {
   position: relative;
   display: flex;
