@@ -132,7 +132,7 @@ video {
 }
 
 .home-feature {
-  max-width: 54rem;
+  max-width: 30.625rem;
   margin: 3rem auto;
   color: var(--muted);
   font-size: 0.95rem;
