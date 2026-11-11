@@ -6,6 +6,22 @@
 (function () {
   document.documentElement.classList.add("js");
 
+  // ---- pie slices sweep in, and sections rise in, as they scroll into view
+  var reveals = Array.prototype.slice.call(document.querySelectorAll(".section-head, .feature, .host-stage, .pie-legend"));
+  var pie = document.querySelector(".pie");
+  if ("IntersectionObserver" in window) {
+    reveals.forEach(function (el) { el.classList.add("reveal"); });
+    if (pie) pie.classList.add("is-armed");
+    var io = new IntersectionObserver(function (items) {
+      items.forEach(function (it) {
+        if (!it.isIntersecting) return;
+        it.target.classList.add("is-in");
+        io.unobserve(it.target);
+      });
+    }, { threshold: 0.2 });
+    reveals.concat(pie ? [pie] : []).forEach(function (el) { io.observe(el); });
+  }
+
   var stage = document.querySelector(".host-stage");
   if (!stage) return;
 

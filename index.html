@@ -8,8 +8,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=IBM+Plex+Mono:wght@400;500;600&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
-  <link rel="stylesheet" href="styles.css?v=20261111d">
-  <script src="script.js?v=20261111d" defer></script>
+  <link rel="stylesheet" href="styles.css?v=20261111e">
+  <script src="script.js?v=20261111e" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to main content</a>
@@ -22,6 +22,7 @@
           <li><a href="index.html" aria-current="page">Workshop</a></li>
           <li><a href="hosts/">Hosts</a></li>
           <li><a href="builds/">Builds</a></li>
+          <li><a href="journal/">Journal</a></li>
           <li><a href="references/">References</a></li>
         </ul>
       </nav>
@@ -30,7 +31,48 @@
 
   <main id="main">
     <section class="hero" aria-labelledby="page-title">
-      <div class="wrap">
+      <div class="hero-art" aria-hidden="true">
+        <svg class="maze" viewBox="-300 -300 600 600">
+          <defs><radialGradient id="glow"><stop offset="0" stop-color="#cb8d45" stop-opacity=".35"/><stop offset="1" stop-color="#cb8d45" stop-opacity="0"/></radialGradient></defs>
+          <circle r="300" fill="url(#glow)"/>
+          <circle class="ring" r="70" pathLength="100" stroke-dasharray="62 6 18 14" style="--dur: 38s; --dir: reverse"/>
+          <circle class="ring" r="104" pathLength="100" stroke-dasharray="30 8 44 18" style="--dur: 49s; --dir: normal"/>
+          <circle class="ring" r="138" pathLength="100" stroke-dasharray="80 20" style="--dur: 60s; --dir: reverse"/>
+          <circle class="ring" r="172" pathLength="100" stroke-dasharray="14 6 40 6 24 10" style="--dur: 71s; --dir: normal"/>
+          <circle class="ring" r="206" pathLength="100" stroke-dasharray="52 12 22 14" style="--dur: 82s; --dir: reverse"/>
+          <circle class="ring" r="240" pathLength="100" stroke-dasharray="70 30" style="--dur: 93s; --dir: normal"/>
+          <circle class="ring" r="274" pathLength="100" stroke-dasharray="18 10 28 44" style="--dur: 104s; --dir: reverse"/>
+          <g transform="scale(0.5) translate(-200 -280)"><path class="host-line" pathLength="1" d="M200,40 C245,40 275,75 275,120 C275,155 258,182 235,195 L235,215 C300,230 350,265 360,330 L365,520 L35,520 L40,330 C50,265 100,230 165,215 L165,195 C142,182 125,155 125,120 C125,75 155,40 200,40 Z"/></g>
+          <circle class="spark" r="5" cy="-80"/>
+          <circle class="dust" cx="109" cy="147" r="1.3" style="--d: 16.7s; --delay: -14.2s"/>
+          <circle class="dust" cx="-153" cy="87" r="1.6" style="--d: 10.8s; --delay: -5.2s"/>
+          <circle class="dust" cx="-135" cy="-86" r="1.0" style="--d: 18.5s; --delay: -3.4s"/>
+          <circle class="dust" cx="264" cy="68" r="1.5" style="--d: 14.5s; --delay: -11.5s"/>
+          <circle class="dust" cx="21" cy="-196" r="0.9" style="--d: 19.6s; --delay: -13.1s"/>
+          <circle class="dust" cx="191" cy="144" r="1.0" style="--d: 10.9s; --delay: -13.7s"/>
+          <circle class="dust" cx="-92" cy="66" r="0.9" style="--d: 9.5s; --delay: -0.1s"/>
+          <circle class="dust" cx="-117" cy="34" r="2.1" style="--d: 12.8s; --delay: -15.4s"/>
+          <circle class="dust" cx="165" cy="-186" r="1.1" style="--d: 14.3s; --delay: -0.0s"/>
+          <circle class="dust" cx="-181" cy="-85" r="1.2" style="--d: 14.1s; --delay: -1.1s"/>
+          <circle class="dust" cx="111" cy="-66" r="1.3" style="--d: 18.4s; --delay: -16.5s"/>
+          <circle class="dust" cx="115" cy="85" r="2.0" style="--d: 10.3s; --delay: -2.3s"/>
+          <circle class="dust" cx="278" cy="-107" r="1.9" style="--d: 19.3s; --delay: -12.8s"/>
+          <circle class="dust" cx="6" cy="173" r="1.8" style="--d: 16.2s; --delay: -10.8s"/>
+          <circle class="dust" cx="263" cy="-252" r="1.5" style="--d: 9.6s; --delay: -4.5s"/>
+          <circle class="dust" cx="-140" cy="-80" r="0.9" style="--d: 10.0s; --delay: -8.5s"/>
+          <circle class="dust" cx="221" cy="-9" r="1.1" style="--d: 15.1s; --delay: -4.6s"/>
+          <circle class="dust" cx="183" cy="-142" r="1.7" style="--d: 13.3s; --delay: -6.8s"/>
+          <circle class="dust" cx="120" cy="-57" r="1.5" style="--d: 17.1s; --delay: -7.7s"/>
+          <circle class="dust" cx="163" cy="82" r="0.9" style="--d: 17.5s; --delay: -0.7s"/>
+          <circle class="dust" cx="-10" cy="117" r="1.9" style="--d: 9.5s; --delay: -0.8s"/>
+          <circle class="dust" cx="189" cy="-110" r="1.3" style="--d: 19.0s; --delay: -13.1s"/>
+          <circle class="dust" cx="-59" cy="-16" r="2.1" style="--d: 10.4s; --delay: -6.0s"/>
+          <circle class="dust" cx="-142" cy="-148" r="1.5" style="--d: 12.2s; --delay: -6.2s"/>
+          <circle class="dust" cx="-103" cy="-46" r="1.6" style="--d: 9.8s; --delay: -11.6s"/>
+          <circle class="dust" cx="-208" cy="218" r="1.4" style="--d: 16.2s; --delay: -11.3s"/>
+        </svg>
+      </div>
+      <div class="wrap hero-copy">
         <p class="label">University of Michigan <span class="dim">/</span> Honors 241 <span class="dim">/</span> Fall 2026</p>
         <h1 id="page-title">Team <em>Ford</em></h1>
         <blockquote class="epigraph">
@@ -156,82 +198,54 @@
         <div class="section-head">
           <p class="label">03 <span class="dim">/</span> The hosts</p>
           <h2 id="hosts-title">Six of us in the workshop</h2>
-          <p>Each host keeps their own builds and journal.</p>
+          <p>Six equal slices of one team. The center is our team DeepDream: a mask made of people. Select a slice to open that host’s page.</p>
         </div>
-        <ul class="hosts">
-          <li>
-            <a class="host-card" href="tiham/">
-              <span>
-                <span class="label">Host 01</span>
-                <span class="host-name">Tiham</span>
-              </span>
-              <span>
-                <span class="host-role">Recorder</span>
-                <span class="enter">Enter →</span>
-              </span>
-            </a>
-          </li>
-          <li>
-            <a class="host-card" href="elijah/">
-              <span>
-                <span class="label">Host 02</span>
-                <span class="host-name">Elijah</span>
-              </span>
-              <span>
-                <span class="host-role">Moderator</span>
-                <span class="enter">Enter →</span>
-              </span>
-            </a>
-          </li>
-          <li>
-            <a class="host-card" href="erica/">
-              <span>
-                <span class="label">Host 03</span>
-                <span class="host-name">Erica</span>
-              </span>
-              <span>
-                <span class="host-role">Designer</span>
-                <span class="enter">Enter →</span>
-              </span>
-            </a>
-          </li>
-          <li>
-            <a class="host-card" href="amogh/">
-              <span>
-                <span class="label">Host 04</span>
-                <span class="host-name">Amogh</span>
-              </span>
-              <span>
-                <span class="host-role">Devil’s advocate</span>
-                <span class="enter">Enter →</span>
-              </span>
-            </a>
-          </li>
-          <li>
-            <a class="host-card" href="augustus/">
-              <span>
-                <span class="label">Host 05</span>
-                <span class="host-name">Augustus</span>
-              </span>
-              <span>
-                <span class="host-role">Checker</span>
-                <span class="enter">Enter →</span>
-              </span>
-            </a>
-          </li>
-          <li>
-            <a class="host-card" href="grace/">
-              <span>
-                <span class="label">Host 06</span>
-                <span class="host-name">Grace</span>
-              </span>
-              <span>
-                <span class="host-role">Spokesperson</span>
-                <span class="enter">Enter →</span>
-              </span>
-            </a>
-          </li>
-        </ul>
+        <div class="pie-wrap">
+        <svg class="pie" viewBox="-10 -10 420 420" role="group" aria-labelledby="pie-title">
+          <title id="pie-title">Team Ford as a pie: six equal slices, one per member. Select a slice to open that member’s page.</title>
+          <defs><clipPath id="pie-core"><circle cx="200" cy="200" r="62"/></clipPath></defs>
+          <a class="slice-link" href="tiham/" style="--i: 0; --dx: 6.0px; --dy: -10.4px">
+            <path class="slice" d="M200,200 L200.0,15.0 A185,185 0 0 1 360.2,107.5 Z" fill="#734c26"/>
+            <text class="slice-name" x="264.0" y="87.1" fill="#f7f6f3">Tiham</text>
+            <text class="slice-role" x="264.0" y="107.1" fill="#f7f6f3">Recorder</text>
+          </a>
+          <a class="slice-link" href="elijah/" style="--i: 1; --dx: 12.0px; --dy: 0.0px">
+            <path class="slice" d="M200,200 L360.2,107.5 A185,185 0 0 1 360.2,292.5 Z" fill="#e3b56d"/>
+            <text class="slice-name" x="328.0" y="198.0" fill="#141211">Elijah</text>
+            <text class="slice-role" x="328.0" y="218.0" fill="#141211">Moderator</text>
+          </a>
+          <a class="slice-link" href="erica/" style="--i: 2; --dx: 6.0px; --dy: 10.4px">
+            <path class="slice" d="M200,200 L360.2,292.5 A185,185 0 0 1 200.0,385.0 Z" fill="#3b3b34"/>
+            <text class="slice-name" x="264.0" y="308.9" fill="#f7f6f3">Erica</text>
+            <text class="slice-role" x="264.0" y="328.9" fill="#f7f6f3">Designer</text>
+          </a>
+          <a class="slice-link" href="amogh/" style="--i: 3; --dx: -6.0px; --dy: 10.4px">
+            <path class="slice" d="M200,200 L200.0,385.0 A185,185 0 0 1 39.8,292.5 Z" fill="#cb8d45"/>
+            <text class="slice-name" x="136.0" y="308.9" fill="#141211">Amogh</text>
+            <text class="slice-role" x="136.0" y="328.9" fill="#141211">Devil’s advocate</text>
+          </a>
+          <a class="slice-link" href="augustus/" style="--i: 4; --dx: -12.0px; --dy: 0.0px">
+            <path class="slice" d="M200,200 L39.8,292.5 A185,185 0 0 1 39.8,107.5 Z" fill="#34353a"/>
+            <text class="slice-name" x="72.0" y="198.0" fill="#f7f6f3">Augustus</text>
+            <text class="slice-role" x="72.0" y="218.0" fill="#f7f6f3">Checker</text>
+          </a>
+          <a class="slice-link" href="grace/" style="--i: 5; --dx: -6.0px; --dy: -10.4px">
+            <path class="slice" d="M200,200 L39.8,107.5 A185,185 0 0 1 200.0,15.0 Z" fill="#85796f"/>
+            <text class="slice-name" x="136.0" y="87.1" fill="#141211">Grace</text>
+            <text class="slice-role" x="136.0" y="107.1" fill="#141211">Spokesperson</text>
+          </a>
+          <circle class="pie-ring" cx="200" cy="200" r="66"/>
+          <image href="images/deepdream.jpg" x="138" y="138" width="124" height="124" clip-path="url(#pie-core)" preserveAspectRatio="xMidYMid slice"/>
+        </svg>
+          <ul class="pie-legend">
+          <li><a href="tiham/"><span class="swatch-dot" style="background: #734c26"></span><span class="legend-name">Tiham</span> <span class="legend-role">Recorder</span></a></li>
+          <li><a href="elijah/"><span class="swatch-dot" style="background: #e3b56d"></span><span class="legend-name">Elijah</span> <span class="legend-role">Moderator</span></a></li>
+          <li><a href="erica/"><span class="swatch-dot" style="background: #3b3b34"></span><span class="legend-name">Erica</span> <span class="legend-role">Designer</span></a></li>
+          <li><a href="amogh/"><span class="swatch-dot" style="background: #cb8d45"></span><span class="legend-name">Amogh</span> <span class="legend-role">Devil’s advocate</span></a></li>
+          <li><a href="augustus/"><span class="swatch-dot" style="background: #34353a"></span><span class="legend-name">Augustus</span> <span class="legend-role">Checker</span></a></li>
+          <li><a href="grace/"><span class="swatch-dot" style="background: #85796f"></span><span class="legend-name">Grace</span> <span class="legend-role">Spokesperson</span></a></li>
+          </ul>
+        </div>
       </div>
     </section>
   </main>
