@@ -215,6 +215,33 @@ video {
   color: var(--muted);
 }
 
+.member-meta {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin: 0 0 2rem;
+  padding: 1rem;
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.member-meta div {
+  min-width: 0;
+}
+
+.member-meta dt {
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.member-meta dd {
+  margin: 0.25rem 0 0;
+}
+
+
 .team-list {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -321,7 +348,8 @@ video {
   }
 
   .team-list,
-  .team-gallery {
+  .team-gallery,
+  .member-meta {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
