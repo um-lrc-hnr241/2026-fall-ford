@@ -422,8 +422,12 @@ p {
   filter: brightness(1.25);
 }
 
+.layer:focus,
 .layer:focus-visible {
   outline: none;
+}
+
+.layer:focus-visible {
   stroke: var(--bone);
   stroke-width: 3;
   stroke-dasharray: none;
