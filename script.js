@@ -1,112 +1,142 @@
-// Team Ford · the player-piano roll.
-// The page works without this file: the roll is a plain list of links.
-// This adds: up-to-date "played / not yet played" status, and a "Play the roll" button
-// that sweeps a playhead across the builds and sounds one piano-ish note per build.
+// Team Ford · the nested host.
+// Without this file the page still works: every build card is listed and every link works.
+// With it: layers light up by due date, clicking a layer or a note sounds that note and
+// opens its build card, and "Play the eight notes" plays them outermost to innermost.
 
 (function () {
   document.documentElement.classList.add("js");
 
-  var roll = document.querySelector(".roll");
-  if (!roll) return;
+  var stage = document.querySelector(".host-stage");
+  if (!stage) return;
 
-  var notes = Array.prototype.slice.call(roll.querySelectorAll(".note"));
+  var layers = Array.prototype.slice.call(stage.querySelectorAll(".layer"));
+  var dots = Array.prototype.slice.call(stage.querySelectorAll(".note-dot"));
+  var cards = Array.prototype.slice.call(stage.querySelectorAll(".layer-card"));
+  var core = stage.querySelector(".core");
+  var DATES = {
+    1: "2026-09-11", 2: "2026-09-25", 3: "2026-10-09", 4: "2026-10-23",
+    5: "2026-11-06", 6: "2026-11-20", 7: "2026-12-04", 8: "2026-12-18"
+  };
+
+  // An original eight-note motif in D minor, falling back to an unresolved low A.
+  var FREQS = [293.66, 349.23, 440.0, 392.0, 349.23, 329.63, 293.66, 220.0];
+
+  function byBuild(list, n) {
+    return list.filter(function (el) { return el.dataset.build === String(n); });
+  }
+
+  // Keep "completed" honest as the semester moves on.
   var today = new Date();
   today.setHours(0, 0, 0, 0);
-
-  // Keep status honest as the semester moves on.
-  notes.forEach(function (note) {
-    if (note.dataset.status === "published") return;
-    var due = new Date(note.dataset.date + "T00:00:00");
-    var status = due <= today ? "played" : "unplayed";
-    note.dataset.status = status;
-    var label = note.querySelector(".note-status");
-    if (label) label.textContent = status === "played" ? "Played" : "Not yet played";
+  Object.keys(DATES).forEach(function (n) {
+    var done = new Date(DATES[n] + "T00:00:00") <= today;
+    byBuild(layers.concat(dots), n).forEach(function (el) {
+      el.classList.toggle("is-done", done);
+      el.classList.toggle("is-open", !done);
+    });
   });
-
-  // A pentatonic scale, low to high: the roll rises as the semester goes on.
-  var FREQS = [196.0, 220.0, 246.94, 293.66, 329.63, 392.0, 440.0, 493.88];
-  var audio = null;
-
-  function ctx() {
-    if (!audio) {
-      var AC = window.AudioContext || window.webkitAudioContext;
-      if (!AC) return null;
-      audio = new AC();
-    }
-    if (audio.state === "suspended") audio.resume();
-    return audio;
+  if (core && layers.every(function (l) { return l.classList.contains("is-done"); })) {
+    core.classList.add("is-awake");
   }
 
-  function strike(freq, quiet) {
-    var ac = ctx();
-    if (!ac) return;
-    var t = ac.currentTime;
-    var out = ac.createGain();
+  // ---- sound
+  var audio = null;
+  function strike(freq) {
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    if (!audio) audio = new AC();
+    if (audio.state === "suspended") audio.resume();
+    var t = audio.currentTime;
+    var out = audio.createGain();
     out.gain.setValueAtTime(0.0001, t);
-    out.gain.exponentialRampToValueAtTime(quiet ? 0.12 : 0.28, t + 0.01);
-    out.gain.exponentialRampToValueAtTime(0.0001, t + 1.6);
-    out.connect(ac.destination);
-    // fundamental + a soft octave = a plucked, slightly mechanical tone
-    [[1, "triangle", 1], [2, "sine", 0.35]].forEach(function (p) {
-      var osc = ac.createOscillator();
-      var g = ac.createGain();
+    out.gain.exponentialRampToValueAtTime(0.3, t + 0.012);
+    out.gain.exponentialRampToValueAtTime(0.0001, t + 2.2);
+    out.connect(audio.destination);
+    // piano-ish: fundamental plus quieter overtones that die away first
+    [[1, "triangle", 1], [2, "sine", 0.4], [3, "sine", 0.12]].forEach(function (p) {
+      var osc = audio.createOscillator();
+      var g = audio.createGain();
       osc.type = p[1];
       osc.frequency.value = freq * p[0];
-      g.gain.value = p[2];
+      g.gain.setValueAtTime(p[2], t);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 2.2 / p[0]);
       osc.connect(g).connect(out);
       osc.start(t);
-      osc.stop(t + 1.7);
+      osc.stop(t + 2.3);
     });
   }
 
-  function sound(note, i, quiet) {
-    var playable = note.dataset.status !== "unplayed";
-    if (playable) strike(FREQS[i % FREQS.length], quiet);
-    note.classList.add("is-sounding");
-    setTimeout(function () {
-      note.classList.remove("is-sounding");
-    }, 380);
+  function flash(n) {
+    byBuild(layers.concat(dots), n).forEach(function (el) {
+      el.classList.add("is-sounding");
+      setTimeout(function () { el.classList.remove("is-sounding"); }, 420);
+    });
   }
 
-  // Hovering a note sounds it once the visitor has started audio with the button.
-  notes.forEach(function (note, i) {
-    note.addEventListener("pointerenter", function () {
-      if (audio && audio.state === "running") sound(note, i, true);
+  // ---- selection
+  function select(n, withSound) {
+    layers.concat(dots, cards).forEach(function (el) {
+      el.classList.toggle("is-selected", el.dataset.build === String(n));
+    });
+    dots.forEach(function (d) { d.setAttribute("aria-pressed", d.dataset.build === String(n) ? "true" : "false"); });
+    if (withSound) {
+      strike(FREQS[n - 1]);
+      flash(n);
+    }
+  }
+
+  layers.forEach(function (layer) {
+    var n = Number(layer.dataset.build);
+    layer.addEventListener("click", function () { select(n, true); });
+    layer.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        select(n, true);
+      } else if (e.key === "ArrowRight" || e.key === "ArrowDown") {
+        e.preventDefault();
+        var next = layers[Math.min(n, layers.length - 1)];
+        next.focus();
+        select(Number(next.dataset.build), true);
+      } else if (e.key === "ArrowLeft" || e.key === "ArrowUp") {
+        e.preventDefault();
+        var prev = layers[Math.max(n - 2, 0)];
+        prev.focus();
+        select(Number(prev.dataset.build), true);
+      }
     });
   });
 
-  var button = document.querySelector(".play-button");
-  var head = document.querySelector(".playhead");
-  var paper = document.querySelector(".roll-paper");
-  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  dots.forEach(function (dot) {
+    dot.addEventListener("click", function () { select(Number(dot.dataset.build), true); });
+  });
+
+  // Start on the most recent finished layer that has a published team build.
+  select(2, false);
+
+  // ---- play all eight
+  var button = stage.querySelector(".play-button");
   var playing = false;
-
-  if (!button) return;
-
-  button.addEventListener("click", function () {
-    if (playing) return;
-    playing = true;
-    button.setAttribute("aria-pressed", "true");
-    var step = 520;
-
-    notes.forEach(function (note, i) {
+  if (button) {
+    button.addEventListener("click", function () {
+      if (playing) return;
+      playing = true;
+      button.setAttribute("aria-pressed", "true");
+      if (core) core.classList.remove("is-awake");
+      var step = 560;
+      for (var i = 1; i <= 8; i++) {
+        (function (n) {
+          setTimeout(function () { select(n, true); }, (n - 1) * step);
+        })(i);
+      }
       setTimeout(function () {
-        sound(note, i, false);
-        if (head && paper && !reduce) {
-          var pr = paper.getBoundingClientRect();
-          var nr = note.getBoundingClientRect();
-          head.style.opacity = "1";
-          head.style.transform = "translateX(" + (nr.left - pr.left + nr.width / 2) + "px)";
-          head.style.top = nr.top - pr.top + "px";
-          head.style.height = nr.height + "px";
-        }
-      }, i * step);
+        if (core) core.classList.add("is-awake");
+      }, 8 * step);
+      setTimeout(function () {
+        var allDone = layers.every(function (l) { return l.classList.contains("is-done"); });
+        if (core && !allDone) core.classList.remove("is-awake");
+        playing = false;
+        button.setAttribute("aria-pressed", "false");
+      }, 8 * step + 1600);
     });
-
-    setTimeout(function () {
-      if (head) head.style.opacity = "0";
-      playing = false;
-      button.setAttribute("aria-pressed", "false");
-    }, notes.length * step + 300);
-  });
+  }
 })();
