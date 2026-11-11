@@ -471,6 +471,141 @@ p {
   color: var(--ash);
 }
 
+/* ---------- player piano ---------- */
+
+.piano-panel {
+  padding: clamp(1rem, 3vw, 2rem);
+  border-radius: 6px;
+}
+
+.piano-roll {
+  display: grid;
+  gap: 0.5rem;
+  max-width: 54rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.piano-row {
+  display: grid;
+  grid-template-columns: 4rem 5rem minmax(6rem, 0.7fr) minmax(9rem, 1fr);
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 3.5rem;
+  padding: 0.35rem 0.75rem;
+  border: 1px solid rgb(247 246 243 / 22%);
+  background: rgb(9 11 16 / 58%);
+}
+
+.piano-row.is-unwritten {
+  border-color: #6c7482;
+  color: #c1c5cb;
+  background: rgb(9 11 16 / 78%);
+}
+
+.piano-row.is-written {
+  border-color: var(--bone);
+  background: rgb(247 246 243 / 12%);
+}
+
+.piano-key {
+  min-height: 2.5rem;
+  border: 1px solid var(--bone);
+  border-radius: 2px;
+  color: var(--ink);
+  background: var(--bone);
+  font: inherit;
+  cursor: pointer;
+}
+
+.piano-key:hover,
+.piano-key:active {
+  background: var(--gold);
+}
+
+.piano-row.is-unwritten .piano-key {
+  border-color: #a7adb8;
+  color: var(--bone);
+  background: #34353a;
+}
+
+.piano-key-number {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.piano-date,
+.piano-status {
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  letter-spacing: 0.04em;
+}
+
+.piano-build {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+.piano-row.is-unwritten .piano-status {
+  color: #c1c5cb;
+}
+
+.piano-row.is-written .piano-status {
+  color: var(--bone);
+}
+
+.piano-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+  margin-top: 1rem;
+}
+
+.piano-play {
+  display: none;
+  padding: 0.65rem 1.1rem;
+  border: 1px solid var(--bone);
+  border-radius: 999px;
+  color: var(--ink);
+  background: var(--bone);
+  font: inherit;
+  cursor: pointer;
+}
+
+.js .piano-play {
+  display: inline-block;
+}
+
+.piano-play:hover {
+  background: var(--gold);
+}
+
+.piano-play:disabled {
+  cursor: wait;
+  opacity: 0.75;
+}
+
+.piano-feedback {
+  margin: 0;
+  color: var(--bone);
+}
+
+@media (max-width: 38rem) {
+  .piano-row {
+    grid-template-columns: 3rem 4.5rem minmax(0, 1fr);
+    gap: 0.5rem;
+  }
+
+  .piano-row .piano-status {
+    grid-column: 2 / -1;
+    padding-bottom: 0.35rem;
+  }
+}
+
 /* ---------- the nested host ---------- */
 
 .host-stage {
