@@ -82,6 +82,34 @@
     });
   }
 
+  var pianoKeys = Array.prototype.slice.call(document.querySelectorAll(".piano-key[data-piano-note]"));
+  var pianoPlay = document.querySelector(".piano-play");
+  var pianoFeedback = document.querySelector(".piano-feedback");
+
+  pianoKeys.forEach(function (key) {
+    key.addEventListener("click", function () {
+      var note = Number(key.dataset.pianoNote);
+      strike(FREQS[note - 1]);
+    });
+  });
+
+  if (pianoPlay) {
+    pianoPlay.addEventListener("click", function () {
+      if (pianoPlay.disabled) return;
+      pianoPlay.disabled = true;
+      pianoPlay.setAttribute("aria-pressed", "true");
+      if (pianoFeedback) pianoFeedback.textContent = "Playing the eight build notes.";
+      FREQS.forEach(function (frequency, index) {
+        window.setTimeout(function () { strike(frequency); }, index * 560);
+      });
+      window.setTimeout(function () {
+        pianoPlay.disabled = false;
+        pianoPlay.setAttribute("aria-pressed", "false");
+        if (pianoFeedback) pianoFeedback.textContent = "Sequence complete.";
+      }, FREQS.length * 560);
+    });
+  }
+
   function flash(n) {
     byBuild(layers.concat(dots), n).forEach(function (el) {
       el.classList.add("is-sounding");
