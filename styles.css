@@ -1772,3 +1772,119 @@ html:not(.js) .scroll-hint {
     padding-top: 0;
   }
 }
+
+/* =====================================================================
+   One typeface everywhere: Times New Roman. Classic, quiet, consistent.
+   ===================================================================== */
+
+:root {
+  --font-display: "Times New Roman", Times, "Liberation Serif", "Nimbus Roman", serif;
+  --font-body: "Times New Roman", Times, "Liberation Serif", "Nimbus Roman", serif;
+  --font-mono: "Times New Roman", Times, "Liberation Serif", "Nimbus Roman", serif;
+}
+
+body {
+  font-size: 1.25rem;
+  line-height: 1.65;
+}
+
+h1,
+h2,
+h3,
+.host-name,
+.legend-name,
+.note-num,
+.note-dot .dot {
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+/* "Team Ford" in one voice: no italic, no second color */
+.hero h1,
+.hero h1 em {
+  font-style: normal;
+  font-weight: 400;
+  color: var(--bone);
+  letter-spacing: 0.01em;
+}
+
+/* labels, menu and small print: uppercase, tracked, in the same Times */
+.label,
+.wordmark,
+.site-nav a,
+.text-link,
+.back-link,
+.chip-row a,
+.member-nav,
+.site-footer .wrap,
+.play-button,
+.note-dot .dot-date,
+.legend-role,
+.epigraph footer,
+.feature figcaption,
+.member-meta dt,
+.scroll-hint,
+.slice-role {
+  text-transform: uppercase;
+  font-weight: 400;
+}
+
+.label {
+  font-size: 0.8rem;
+  letter-spacing: 0.2em;
+}
+
+.wordmark {
+  font-size: 0.95rem;
+  letter-spacing: 0.24em;
+}
+
+.site-nav a,
+.text-link,
+.back-link,
+.chip-row a {
+  font-size: 0.85rem;
+  letter-spacing: 0.16em;
+}
+
+.site-footer .wrap,
+.epigraph footer,
+.feature figcaption,
+.member-meta dt {
+  font-size: 0.8rem;
+  letter-spacing: 0.16em;
+}
+
+.play-button,
+.scroll-hint {
+  font-size: 0.8rem;
+  letter-spacing: 0.18em;
+}
+
+.note-dot .dot-date,
+.legend-role {
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+}
+
+.epigraph p,
+.pull {
+  font-style: italic;
+}
+
+.slice-name {
+  font-size: 25px;
+}
+
+.slice-role {
+  font-size: 9.5px;
+  letter-spacing: 0.14em;
+}
+
+button {
+  font-family: inherit;
+}
+
+.slice-name {
+  font-weight: 400;
+}
