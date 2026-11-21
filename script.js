@@ -7,10 +7,12 @@
   document.documentElement.classList.add("js");
 
   // =====================================================================
-  // Boot-up intro (home page, first visit per session): the site comes
-  // online like a host. Typed diagnostic lines, then the "eyes" open onto
-  // the page. Tap, any key or "Skip" ends it at once. The inline script in
-  // <head> covers the page early so nothing flashes before this runs.
+  // Boot-up intro (home page, first visit per session). A black gate:
+  // "Enter the park" (with sound) or "Enter silently". Then the lines
+  // decode out of scrambled glyphs, TEAM FORD slams in on a low brass hit,
+  // and two lids part like eyes opening onto the site. The music is an
+  // original cue in a big cinematic style: riser, driving ostinato, BRAAM.
+  // Skip, Esc or a tap on Skip ends it at once.
   // =====================================================================
   (function bootIntro() {
     var root = document.documentElement;
@@ -21,47 +23,230 @@
     ["2026-09-11", "2026-09-25", "2026-10-09", "2026-10-23", "2026-11-06", "2026-11-20", "2026-12-04", "2026-12-18"]
       .forEach(function (d) { if (new Date(d + "T00:00:00") <= today) done++; });
 
-    var lines = [
-      "Bringing yourself back online.",
-      "Host: Team Ford · HNR 241 · Fall 2026",
-      "Cognition … 6 hosts responding",
-      "Builds loaded … " + done + " of 8",
-      "Reveries … present",
-      "Analysis complete. Welcome to the workshop."
-    ];
-
     var boot = document.createElement("div");
     boot.className = "boot";
     boot.setAttribute("role", "dialog");
     boot.setAttribute("aria-label", "Intro");
     boot.innerHTML =
       '<div class="boot-lid boot-lid-top"></div><div class="boot-lid boot-lid-bottom"></div>' +
-      '<div class="boot-screen"><p class="boot-kicker">Diagnostic mode</p><ol class="boot-lines"></ol><span class="boot-cursor" aria-hidden="true"></span></div>' +
+      '<div class="boot-flash" aria-hidden="true"></div>' +
+      '<div class="boot-gate">' +
+      '  <p class="boot-kicker">Team Ford · HNR 241</p>' +
+      '  <button class="boot-enter" type="button"><span>Enter the park</span></button>' +
+      '  <button class="boot-silent" type="button">Enter silently</button>' +
+      '  <p class="boot-note">Best with sound on</p>' +
+      "</div>" +
+      '<div class="boot-stage" aria-live="polite">' +
+      '  <p class="boot-line boot-line-lead"></p>' +
+      '  <div class="boot-readout"></div>' +
+      '  <h2 class="boot-title" aria-label="Team Ford"></h2>' +
+      "</div>" +
       '<button class="boot-skip" type="button">Skip</button>';
     document.body.appendChild(boot);
     root.classList.add("waking");
     root.classList.remove("intro-pending");
 
-    var list = boot.querySelector(".boot-lines");
+    var stage = boot.querySelector(".boot-stage");
     var timers = [];
     var finished = false;
-
+    var music = null;
     function later(fn, ms) { timers.push(setTimeout(fn, ms)); }
 
-    function typeLine(text, i, at) {
-      var li = document.createElement("li");
-      later(function () {
-        list.appendChild(li);
-        for (var c = 1; c <= text.length; c++) {
-          (function (c) { later(function () { li.textContent = text.slice(0, c); }, c * 24); })(c);
+    // ---------------------------------------------------------- text effects
+    var GLYPHS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/·:#*+";
+    function decode(el, text, ms) {
+      el.classList.add("is-in");
+      var start = performance.now();
+      (function frame(now) {
+        var p = Math.min((now - start) / ms, 1);
+        var solved = Math.floor(p * text.length);
+        var out = text.slice(0, solved);
+        for (var i = solved; i < text.length; i++) {
+          out += text[i] === " " ? " " : GLYPHS[(Math.random() * GLYPHS.length) | 0];
         }
-      }, at);
-      return at + text.length * 24 + (i === 0 ? 700 : 320);
+        el.textContent = out;
+        if (p < 1 && !finished) requestAnimationFrame(frame);
+        else el.textContent = text;
+      })(start);
+    }
+    function rise(el, text) {
+      el.innerHTML = "";
+      text.split("").forEach(function (ch, i) {
+        var s = document.createElement("span");
+        s.textContent = ch === " " ? " " : ch;
+        s.style.setProperty("--d", i * 32 + "ms");
+        el.appendChild(s);
+      });
+      el.classList.add("is-in");
+    }
+    function slam(el, text) {
+      el.innerHTML = "";
+      text.split("").forEach(function (ch, i) {
+        var s = document.createElement("span");
+        s.textContent = ch === " " ? " " : ch;
+        s.style.setProperty("--d", Math.abs(i - (text.length - 1) / 2) * 40 + "ms");
+        el.appendChild(s);
+      });
+      el.classList.add("is-in");
     }
 
-    var t = 450;
-    lines.forEach(function (line, i) { t = typeLine(line, i, t); });
-    later(open, t + 500);
+    // ---------------------------------------------------------- the cue
+    function cue() {
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return null;
+      var ctx = new AC();
+      var t0 = ctx.currentTime + 0.05;
+      var comp = ctx.createDynamicsCompressor();
+      comp.threshold.value = -14; comp.ratio.value = 4;
+      var master = ctx.createGain();
+      master.gain.value = 0.9;
+      master.connect(comp).connect(ctx.destination);
+      var verb = ctx.createConvolver();
+      var len = ctx.sampleRate * 4.5, ir = ctx.createBuffer(2, len, ctx.sampleRate);
+      for (var c = 0; c < 2; c++) {
+        var d = ir.getChannelData(c);
+        for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.4);
+      }
+      verb.buffer = ir;
+      var wet = ctx.createGain(); wet.gain.value = 0.45;
+      verb.connect(wet).connect(master);
+      function out(node) { node.connect(master); node.connect(verb); }
+
+      function noise(sec) {
+        var b = ctx.createBuffer(1, ctx.sampleRate * sec, ctx.sampleRate);
+        var dd = b.getChannelData(0);
+        for (var k = 0; k < dd.length; k++) dd[k] = Math.random() * 2 - 1;
+        var s = ctx.createBufferSource(); s.buffer = b; return s;
+      }
+
+      var HIT = 5.1; // seconds after start: the slam
+
+      // riser: filtered noise sweeping up, swelling
+      var rn = noise(HIT + 0.2), bp = ctx.createBiquadFilter(), rg = ctx.createGain();
+      bp.type = "bandpass"; bp.Q.value = 1.2;
+      bp.frequency.setValueAtTime(180, t0);
+      bp.frequency.exponentialRampToValueAtTime(7000, t0 + HIT);
+      rg.gain.setValueAtTime(0.0001, t0);
+      rg.gain.exponentialRampToValueAtTime(0.22, t0 + HIT - 0.05);
+      rg.gain.linearRampToValueAtTime(0, t0 + HIT + 0.05);
+      rn.connect(bp).connect(rg); out(rg);
+      rn.start(t0); rn.stop(t0 + HIT + 0.2);
+
+      // rising strings: three saws climbing an octave
+      [110, 164.81, 220].forEach(function (f) {
+        var o = ctx.createOscillator(), lp = ctx.createBiquadFilter(), g = ctx.createGain();
+        o.type = "sawtooth";
+        o.frequency.setValueAtTime(f, t0);
+        o.frequency.exponentialRampToValueAtTime(f * 2, t0 + HIT);
+        lp.type = "lowpass";
+        lp.frequency.setValueAtTime(300, t0);
+        lp.frequency.exponentialRampToValueAtTime(3200, t0 + HIT);
+        g.gain.setValueAtTime(0.0001, t0);
+        g.gain.exponentialRampToValueAtTime(0.05, t0 + HIT - 0.1);
+        g.gain.linearRampToValueAtTime(0, t0 + HIT + 0.05);
+        o.connect(lp).connect(g); out(g);
+        o.start(t0); o.stop(t0 + HIT + 0.2);
+      });
+
+      // driving ostinato: sixteenth notes on low A, getting louder
+      var step = 60 / 132 / 4;
+      for (var n = 0, t = t0 + 0.4; t < t0 + HIT - 0.05; n++, t += step) {
+        var o2 = ctx.createOscillator(), f2 = ctx.createBiquadFilter(), g2 = ctx.createGain();
+        o2.type = "sawtooth";
+        o2.frequency.value = n % 4 === 3 ? 82.41 : 55; // A1, with E2 on the off-beat
+        f2.type = "lowpass";
+        f2.frequency.value = 420 + (t - t0) * 260;
+        var v = 0.04 + ((t - t0) / HIT) * 0.16;
+        g2.gain.setValueAtTime(0.0001, t);
+        g2.gain.exponentialRampToValueAtTime(v, t + 0.01);
+        g2.gain.exponentialRampToValueAtTime(0.0001, t + step * 0.9);
+        o2.connect(f2).connect(g2); g2.connect(master);
+        o2.start(t); o2.stop(t + step);
+      }
+
+      // drum hits on the beat for the last stretch
+      for (var b2 = 0, tb = t0 + 2.6; tb < t0 + HIT - 0.1; b2++, tb += 60 / 132) {
+        var k2 = ctx.createOscillator(), kg = ctx.createGain();
+        k2.frequency.setValueAtTime(110, tb);
+        k2.frequency.exponentialRampToValueAtTime(42, tb + 0.35);
+        kg.gain.setValueAtTime(0.5, tb);
+        kg.gain.exponentialRampToValueAtTime(0.0001, tb + 0.5);
+        k2.connect(kg); out(kg);
+        k2.start(tb); k2.stop(tb + 0.55);
+      }
+
+      // the BRAAM: detuned brass-like saws, driven, filter blooming open
+      var th = t0 + HIT;
+      var shaper = ctx.createWaveShaper(), curve = new Float32Array(1024);
+      for (var q = 0; q < 1024; q++) { var xx = q / 512 - 1; curve[q] = Math.tanh(xx * 3.2); }
+      shaper.curve = curve;
+      var bl = ctx.createBiquadFilter(), bg = ctx.createGain();
+      bl.type = "lowpass";
+      bl.frequency.setValueAtTime(250, th);
+      bl.frequency.exponentialRampToValueAtTime(2400, th + 0.18);
+      bl.frequency.exponentialRampToValueAtTime(500, th + 4);
+      bg.gain.setValueAtTime(0.0001, th);
+      bg.gain.exponentialRampToValueAtTime(0.34, th + 0.06);
+      bg.gain.exponentialRampToValueAtTime(0.0001, th + 6);
+      shaper.connect(bl).connect(bg); out(bg);
+      [55, 82.41, 110, 130.81].forEach(function (f) {
+        [-9, 9].forEach(function (cents) {
+          var o3 = ctx.createOscillator();
+          o3.type = "sawtooth"; o3.frequency.value = f; o3.detune.value = cents;
+          var og = ctx.createGain(); og.gain.value = 0.25;
+          o3.connect(og).connect(shaper);
+          o3.start(th); o3.stop(th + 6.2);
+        });
+      });
+      // sub boom under it
+      var sub = ctx.createOscillator(), sg = ctx.createGain();
+      sub.frequency.setValueAtTime(62, th);
+      sub.frequency.exponentialRampToValueAtTime(30, th + 2.5);
+      sg.gain.setValueAtTime(0.7, th);
+      sg.gain.exponentialRampToValueAtTime(0.0001, th + 3.5);
+      sub.connect(sg).connect(master);
+      sub.start(th); sub.stop(th + 3.6);
+
+      return {
+        stop: function () {
+          master.gain.cancelScheduledValues(ctx.currentTime);
+          master.gain.setValueAtTime(master.gain.value, ctx.currentTime);
+          master.gain.linearRampToValueAtTime(0, ctx.currentTime + 0.6);
+          setTimeout(function () { ctx.close(); }, 900);
+        },
+        close: function () { setTimeout(function () { ctx.close(); }, 7000); }
+      };
+    }
+
+    // ---------------------------------------------------------- sequence
+    function run(withSound) {
+      boot.classList.add("is-running");
+      if (withSound) music = cue();
+      var lead = stage.querySelector(".boot-line-lead");
+      var readout = stage.querySelector(".boot-readout");
+      var lines = [
+        "Host · Team Ford · HNR 241 · Fall 2026",
+        "Cognition · 6 hosts responding",
+        "Builds loaded · " + done + " of 8",
+        "Reveries · present"
+      ];
+      later(function () { rise(lead, "Bringing yourself back online."); }, 350);
+      lines.forEach(function (text, i) {
+        later(function () {
+          var p = document.createElement("p");
+          p.className = "boot-line";
+          readout.appendChild(p);
+          decode(p, text, 520);
+        }, 1900 + i * 620);
+      });
+      later(function () { stage.classList.add("is-clearing"); }, 4650);
+      later(function () {
+        stage.classList.add("is-title");
+        boot.classList.add("is-hit");
+        slam(stage.querySelector(".boot-title"), "TEAM FORD");
+      }, 5100);
+      later(open, 6900);
+    }
 
     function open() {
       if (finished) return;
@@ -69,14 +254,26 @@
       timers.forEach(clearTimeout);
       boot.classList.add("is-opening");
       root.classList.remove("waking");
-      window.removeEventListener("keydown", skip, true);
-      setTimeout(function () { boot.remove(); }, 1300);
+      window.removeEventListener("keydown", onKey, true);
+      if (music) music.close();
+      setTimeout(function () { boot.remove(); }, 1400);
     }
 
-    function skip() { open(); }
+    function skip() {
+      if (music) { music.stop(); music = null; }
+      open();
+    }
+
+    function onKey(e) {
+      if (e.key === "Escape") { skip(); return; }
+      if (!boot.classList.contains("is-running") && e.key === "Enter") { e.preventDefault(); run(true); }
+    }
+
+    boot.querySelector(".boot-enter").addEventListener("click", function () { run(true); });
+    boot.querySelector(".boot-silent").addEventListener("click", function () { run(false); });
     boot.querySelector(".boot-skip").addEventListener("click", skip);
-    boot.addEventListener("pointerdown", function (e) { if (!e.target.closest(".boot-skip")) skip(); });
-    window.addEventListener("keydown", skip, true);
+    window.addEventListener("keydown", onKey, true);
+    boot.querySelector(".boot-enter").focus();
   })();
 
   // =====================================================================
@@ -540,19 +737,20 @@
   })();
 
   // =====================================================================
-  // The maze, in 3D (home page). Scrolling walks the camera inward toward
-  // the glowing core; dragging turns the maze. Needs three.js + WebGL; if
-  // either is missing the section simply stays hidden.
+  // The mask, in 3D (home page). An engraved silver mask; the eight builds
+  // orbit it as a ring. Scrolling turns the mask to face you, then lifts it
+  // away and dissolves it, leaving the builds circling an empty centre
+  // (Build 6: when all the layers are gone, no true self is found).
+  // Needs three.js + WebGL; otherwise the section stays hidden.
   // =====================================================================
-  (function maze3d() {
-    var section = document.querySelector(".maze-section");
-    var canvas = section && section.querySelector(".maze-gl");
-    if (!section || !canvas || !window.THREE) return;
+  (function mask3d() {
+    var section = document.querySelector(".mask-section");
+    var canvas = section && section.querySelector(".mask-gl");
+    var labelsBox = section && section.querySelector(".orbit-labels");
+    if (!section || !canvas || !labelsBox || !window.THREE) return;
     var T = window.THREE;
     var renderer;
-    try {
-      renderer = new T.WebGLRenderer({ canvas: canvas, antialias: true });
-    } catch (e) { return; }
+    try { renderer = new T.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false }); } catch (e) { return; }
     section.classList.add("is-ready");
 
     var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -560,161 +758,220 @@
     renderer.setClearColor(0x090b10, 1);
 
     var scene = new T.Scene();
-    scene.fog = new T.Fog(0x090b10, 9, 26);
-    var camera = new T.PerspectiveCamera(42, 1, 0.1, 100);
+    scene.fog = new T.Fog(0x090b10, 6, 14);
+    var camera = new T.PerspectiveCamera(36, 1, 0.1, 60);
+    camera.position.set(0, 0.25, 6.2);
 
-    scene.add(new T.HemisphereLight(0x8fa3c0, 0x090b10, 0.55));
-    var key = new T.DirectionalLight(0xdfe4ec, 0.55);
-    key.position.set(6, 12, 4);
+    scene.add(new T.HemisphereLight(0x8fa3c0, 0x090b10, 0.6));
+    var key = new T.DirectionalLight(0xf8f8f6, 1.1);
+    key.position.set(2.5, 2.5, 4);
     scene.add(key);
-    var coreLight = new T.PointLight(0xf8f8f6, 2.2, 9, 2);
-    coreLight.position.set(0, 0.6, 0);
-    scene.add(coreLight);
+    var rim = new T.DirectionalLight(0x5f7fb0, 1.2);
+    rim.position.set(-3, 1, -3);
+    scene.add(rim);
 
-    // seeded randomness so the maze is the same for everyone
-    var seed = 241;
-    function rand() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
-
-    var wallMat = new T.MeshStandardMaterial({ color: 0x1b2a44, roughness: 0.55, metalness: 0.25 });
-    var edgeMat = new T.LineBasicMaterial({ color: 0xdfe4ec, transparent: true, opacity: 0.5 });
-    var group = new T.Group();
-    scene.add(group);
-
-    function addMesh(geo) {
-      var m = new T.Mesh(geo, wallMat);
-      group.add(m);
-      group.add(new T.LineSegments(new T.EdgesGeometry(geo, 30), edgeMat));
+    // ---------------------------------------------------------- mask geometry
+    // a curved face built on a grid; eye and mouth openings are left out
+    var NU = 200, NV = 250;
+    function inside(X, Y) {
+      var w = Y < 0 ? 1 - 0.36 * -Y : 1;
+      return (X / w) * (X / w) + Y * Y <= 1;
+    }
+    function hole(X, Y) {
+      var ex = (Math.abs(X) - 0.33) / 0.15, ey = (Y - 0.17 - 0.04 * (Math.abs(X) - 0.33) / 0.15) / 0.065;
+      if (ex * ex + ey * ey < 1) return true;
+      var mx = X / 0.21, my = (Y + 0.47 - 0.05 * mx * mx) / 0.028;
+      return mx * mx + my * my < 1;
+    }
+    function g(x, s) { return Math.exp(-(x / s) * (x / s)); }
+    function depth(X, Y) {
+      var z = 0.72 * Math.sqrt(Math.max(0, 1 - X * X * 0.92 - Y * Y * 0.55));
+      var nose = Y > -0.32 && Y < 0.32 ? (0.32 - Y) / 0.64 : 0;
+      z += 0.24 * g(X, 0.1 + 0.05 * (1 - nose)) * Math.pow(nose, 0.8) * (Y > -0.3 ? 1 : 0);
+      z += 0.07 * g(Y - 0.33, 0.07) * g(X, 0.62);
+      z -= 0.1 * g(Math.abs(X) - 0.33, 0.18) * g(Y - 0.17, 0.11);
+      z += 0.06 * g(Math.abs(X) - 0.38, 0.2) * g(Y + 0.14, 0.18);
+      z += 0.05 * g(X, 0.24) * g(Y + 0.47, 0.07);
+      z += 0.05 * g(X, 0.2) * g(Y + 0.8, 0.12);
+      return z;
     }
 
-    var H = 0.6, TH = 0.09, RINGS = 6;
-    function arc(r, a0, a1) {
-      var s = new T.Shape();
-      s.absarc(0, 0, r + TH, a0, a1, false);
-      s.absarc(0, 0, r - TH, a1, a0, true);
-      var g = new T.ExtrudeGeometry(s, { depth: H, bevelEnabled: false, curveSegments: Math.max(8, Math.round((a1 - a0) * r * 10)) });
-      g.rotateX(-Math.PI / 2);
-      addMesh(g);
-    }
-    function radial(r0, r1, a) {
-      var len = r1 - r0;
-      var g = new T.BoxGeometry(len, H, TH * 2);
-      g.translate(r0 + len / 2, H / 2, 0);
-      g.rotateY(a); // matches the arcs, which the X-rotation mirrors
-      addMesh(g);
-    }
-
-    var radii = [];
-    for (var i = 0; i < RINGS; i++) radii.push(1.1 + i * 0.95);
-    radii.forEach(function (r, i) {
-      // one or two openings per ring, never lined up: you have to wind inward
-      var gaps = i % 2 ? 2 : 1;
-      var start = rand() * Math.PI * 2;
-      var gapW = 0.55 / r + 0.18;
-      var segs = [];
-      for (var g = 0; g < gaps; g++) segs.push(start + g * (Math.PI * 2 / gaps));
-      for (var k = 0; k < gaps; k++) {
-        var a0 = segs[k] + gapW;
-        var a1 = segs[k] + Math.PI * 2 / gaps;
-        arc(r, a0, a1);
+    var pos = [], idx = [], keep = [];
+    for (var j = 0; j < NV; j++) {
+      for (var i = 0; i < NU; i++) {
+        var X = (i / (NU - 1)) * 2 - 1, Y = (j / (NV - 1)) * 2 - 1;
+        pos.push(X * 0.92, Y * 1.22, depth(X, Y));
+        keep.push(inside(X, Y));
       }
-      if (i < RINGS - 1) {
-        var n = 2 + (i % 2);
-        for (var j = 0; j < n; j++) radial(r + TH, radii[i + 1] - TH, start + Math.PI / gaps / 2 + j * (Math.PI * 2 / n) + rand() * 0.4);
+    }
+    function vid(i, j) { return j * NU + i; }
+    for (var jj = 0; jj < NV - 1; jj++) {
+      for (var ii = 0; ii < NU - 1; ii++) {
+        var a = vid(ii, jj), b = vid(ii + 1, jj), c = vid(ii, jj + 1), d = vid(ii + 1, jj + 1);
+        if (!(keep[a] && keep[b] && keep[c] && keep[d])) continue;
+        var cx = ((ii + 0.5) / (NU - 1)) * 2 - 1, cy = ((jj + 0.5) / (NV - 1)) * 2 - 1;
+        if (hole(cx, cy)) continue;
+        idx.push(a, c, b, b, c, d);
       }
+    }
+    var geo = new T.BufferGeometry();
+    geo.setAttribute("position", new T.Float32BufferAttribute(pos, 3));
+    geo.setIndex(idx);
+    geo.computeVertexNormals();
+
+    var maskMat = new T.MeshStandardMaterial({ color: 0xcfd5df, metalness: 0.55, roughness: 0.38, side: T.DoubleSide, transparent: true });
+    var mask = new T.Group();
+    mask.add(new T.Mesh(geo, maskMat));
+
+    // engraved contour lines across the face
+    var lpos = [];
+    for (var row = 4; row < NV; row += 8) {
+      for (var col = 0; col < NU - 1; col++) {
+        var X1 = (col / (NU - 1)) * 2 - 1, X2 = ((col + 1) / (NU - 1)) * 2 - 1, YY = (row / (NV - 1)) * 2 - 1;
+        if (!inside(X1, YY) || !inside(X2, YY) || hole(X1, YY) || hole(X2, YY)) continue;
+        lpos.push(X1 * 0.92, YY * 1.22, depth(X1, YY) + 0.004, X2 * 0.92, YY * 1.22, depth(X2, YY) + 0.004);
+      }
+    }
+    var lgeo = new T.BufferGeometry();
+    lgeo.setAttribute("position", new T.Float32BufferAttribute(lpos, 3));
+    var lineMat = new T.LineBasicMaterial({ color: 0x1b2a44, transparent: true, opacity: 0.55 });
+    mask.add(new T.LineSegments(lgeo, lineMat));
+
+    // a faint light behind the eye openings
+    var gc = document.createElement("canvas");
+    gc.width = gc.height = 64;
+    var gx = gc.getContext("2d");
+    var gr = gx.createRadialGradient(32, 32, 0, 32, 32, 32);
+    gr.addColorStop(0, "rgba(248,248,246,1)");
+    gr.addColorStop(0.4, "rgba(143,163,192,0.5)");
+    gr.addColorStop(1, "rgba(143,163,192,0)");
+    gx.fillStyle = gr;
+    gx.fillRect(0, 0, 64, 64);
+    var glowTex = new T.CanvasTexture(gc);
+    var eyes = [];
+    [-0.3, 0.3].forEach(function (x) {
+      var s = new T.Sprite(new T.SpriteMaterial({ map: glowTex, transparent: true, depthWrite: false, blending: T.AdditiveBlending, opacity: 0.8 }));
+      s.position.set(x, 0.2, 0.18);
+      s.scale.set(0.35, 0.22, 1);
+      mask.add(s);
+      eyes.push(s);
+    });
+    scene.add(mask);
+
+    // ---------------------------------------------------------- the ring of builds
+    var BUILDS = [
+      { n: "I", date: "Sep 11", iso: "2026-09-11" },
+      { n: "II", date: "Sep 25", iso: "2026-09-25", href: "builds/#build-2", team: true },
+      { n: "III", date: "Oct 9", iso: "2026-10-09" },
+      { n: "IV", date: "Oct 23", iso: "2026-10-23" },
+      { n: "V", date: "Nov 6", iso: "2026-11-06" },
+      { n: "VI", date: "Nov 20", iso: "2026-11-20", href: "builds/#build-6", team: true },
+      { n: "VII", date: "Dec 4", iso: "2026-12-04" },
+      { n: "VIII", date: "Dec 18", iso: "2026-12-18" }
+    ];
+    var now = new Date();
+    var ring = new T.Group();
+    ring.rotation.x = 0.32;
+    scene.add(ring);
+    var R = 2.15;
+    var pts = [];
+    for (var q = 0; q <= 160; q++) pts.push(new T.Vector3(Math.cos(q / 160 * Math.PI * 2) * R, 0, Math.sin(q / 160 * Math.PI * 2) * R));
+    ring.add(new T.Line(new T.BufferGeometry().setFromPoints(pts), new T.LineDashedMaterial({ color: 0x8fa3c0, dashSize: 0.06, gapSize: 0.05, transparent: true, opacity: 0.45 })));
+    ring.children[0].computeLineDistances();
+
+    var nodes = BUILDS.map(function (b, k) {
+      var ang = (k / BUILDS.length) * Math.PI * 2;
+      var doneB = new Date(b.iso + "T00:00:00") <= now;
+      var m = new T.Mesh(new T.SphereGeometry(doneB ? 0.05 : 0.035, 16, 16), new T.MeshBasicMaterial({ color: doneB ? 0xf8f8f6 : 0x6c7482 }));
+      m.position.set(Math.cos(ang) * R, 0, Math.sin(ang) * R);
+      ring.add(m);
+      var el = document.createElement(b.href && doneB ? "a" : "span");
+      el.className = "orbit-label " + (doneB ? "is-done" : "is-open") + (b.team ? " is-team" : "");
+      if (b.href && doneB) el.href = b.href;
+      el.innerHTML = '<span class="orbit-n">' + b.n + '</span><span class="orbit-d">Build ' + (k + 1) + " · " + b.date + (b.team && doneB ? " · team" : doneB ? "" : " · to come") + "</span>";
+      labelsBox.appendChild(el);
+      return { mesh: m, el: el };
     });
 
-    // floor with faint engraved circles
-    var floor = new T.Mesh(new T.CircleGeometry(radii[RINGS - 1] + 1.4, 96), new T.MeshStandardMaterial({ color: 0x0d1526, roughness: 0.9 }));
-    floor.rotation.x = -Math.PI / 2;
-    group.add(floor);
-    for (var e = 0; e < 14; e++) {
-      var rr = 0.6 + e * 0.48;
-      var pts = [];
-      for (var q = 0; q <= 128; q++) pts.push(new T.Vector3(Math.cos(q / 128 * Math.PI * 2) * rr, 0.005, Math.sin(q / 128 * Math.PI * 2) * rr));
-      group.add(new T.Line(new T.BufferGeometry().setFromPoints(pts), new T.LineBasicMaterial({ color: 0x2f4468, transparent: true, opacity: 0.35 })));
-    }
-
-    // the core: consciousness
-    var core = new T.Mesh(new T.SphereGeometry(0.28, 32, 32), new T.MeshBasicMaterial({ color: 0xf8f8f6 }));
-    core.position.y = 0.55;
-    group.add(core);
-    var glowCanvas = document.createElement("canvas");
-    glowCanvas.width = glowCanvas.height = 128;
-    var gctx = glowCanvas.getContext("2d");
-    var grad = gctx.createRadialGradient(64, 64, 0, 64, 64, 64);
-    grad.addColorStop(0, "rgba(248,248,246,0.9)");
-    grad.addColorStop(0.25, "rgba(223,228,236,0.35)");
-    grad.addColorStop(1, "rgba(143,163,192,0)");
-    gctx.fillStyle = grad;
-    gctx.fillRect(0, 0, 128, 128);
-    var glow = new T.Sprite(new T.SpriteMaterial({ map: new T.CanvasTexture(glowCanvas), transparent: true, depthWrite: false, blending: T.AdditiveBlending }));
-    glow.scale.set(2.4, 2.4, 1);
-    glow.position.y = 0.55;
-    group.add(glow);
-
-    // drifting dust
-    var dustGeo = new T.BufferGeometry();
-    var dust = new Float32Array(420 * 3);
-    for (var p = 0; p < 420; p++) {
-      var ang = rand() * Math.PI * 2, rad = rand() * 8;
-      dust[p * 3] = Math.cos(ang) * rad;
-      dust[p * 3 + 1] = rand() * 5;
-      dust[p * 3 + 2] = Math.sin(ang) * rad;
-    }
-    dustGeo.setAttribute("position", new T.BufferAttribute(dust, 3));
-    var dustPts = new T.Points(dustGeo, new T.PointsMaterial({ color: 0xdfe4ec, size: 0.035, transparent: true, opacity: 0.6, depthWrite: false }));
-    scene.add(dustPts);
-
-    // scroll → journey inward; drag → turn
-    var progress = 0, smooth = 0, drag = 0, dragSmooth = 0;
+    // ---------------------------------------------------------- interaction
+    var progress = 0, smooth = 0;
     function onScroll() {
       var r = section.getBoundingClientRect();
       var span = section.offsetHeight - window.innerHeight;
       progress = span > 0 ? Math.min(Math.max(-r.top / span, 0), 1) : 0;
-      section.style.setProperty("--maze-p", progress.toFixed(3));
+      section.style.setProperty("--mask-p", progress.toFixed(3));
     }
     window.addEventListener("scroll", function () { requestAnimationFrame(onScroll); }, { passive: true });
     onScroll();
 
-    var down = false, lastX = 0;
-    canvas.addEventListener("pointerdown", function (e) { down = true; lastX = e.clientX; canvas.setPointerCapture(e.pointerId); });
-    canvas.addEventListener("pointermove", function (e) { if (!down) return; drag += (e.clientX - lastX) * 0.006; lastX = e.clientX; });
-    canvas.addEventListener("pointerup", function () { down = false; });
-    canvas.addEventListener("pointercancel", function () { down = false; });
+    var px = 0, py = 0, tx = 0, ty = 0;
+    section.addEventListener("pointermove", function (e) {
+      var r = section.querySelector(".mask-sticky").getBoundingClientRect();
+      tx = ((e.clientX - r.left) / r.width - 0.5) * 2;
+      ty = ((e.clientY - r.top) / r.height - 0.5) * 2;
+    });
 
     var visible = false;
-    new IntersectionObserver(function (en) { visible = en[0].isIntersecting; }, { rootMargin: "100px" }).observe(section);
+    new IntersectionObserver(function (en) { visible = en[0].isIntersecting; }, { rootMargin: "120px" }).observe(section);
 
     function resize() {
       var w = canvas.clientWidth, h = canvas.clientHeight;
-      if (canvas.width !== Math.round(w * renderer.getPixelRatio()) || canvas.height !== Math.round(h * renderer.getPixelRatio())) {
+      var pr = renderer.getPixelRatio();
+      if (canvas.width !== Math.round(w * pr) || canvas.height !== Math.round(h * pr)) {
         renderer.setSize(w, h, false);
         camera.aspect = w / h;
-        camera.fov = w < 700 ? 55 : 42;
+        camera.position.z = w < 700 ? 12 : 6.2;
+        ringBase = w < 700 ? 0.68 : 1;
         camera.updateProjectionMatrix();
       }
     }
 
+    function smoothstep(a, b, x) { var t = Math.min(Math.max((x - a) / (b - a), 0), 1); return t * t * (3 - 2 * t); }
+    var v = new T.Vector3();
+    var ringBase = 1;
     var clock = new T.Clock();
+
     function frame() {
       requestAnimationFrame(frame);
       if (!visible) return;
       resize();
       var t = clock.getElapsedTime();
-      smooth += (progress - smooth) * 0.06;
-      dragSmooth += (drag - dragSmooth) * 0.12;
-      var p = reduce ? 0.35 : smooth;
-      var e2 = p * p * (3 - 2 * p);
-      var radius = 14 - e2 * 10.6;
-      var height = 12 - e2 * 9.2;
-      var angle = 0.6 + e2 * Math.PI * 2.2 + dragSmooth + (reduce ? 0 : t * 0.03);
-      camera.position.set(Math.cos(angle) * radius, height, Math.sin(angle) * radius);
-      camera.lookAt(0, 0.35 - e2 * 0.1, 0);
-      var pulse = 1 + Math.sin(t * 1.6) * 0.08;
-      glow.scale.set(2.4 * pulse, 2.4 * pulse, 1);
-      coreLight.intensity = 1.5 + e2 * 0.9 + Math.sin(t * 1.6) * 0.25;
-      if (!reduce) dustPts.rotation.y = t * 0.02;
+      smooth += (progress - smooth) * 0.07;
+      px += (tx - px) * 0.05; py += (ty - py) * 0.05;
+      var p = smooth;
+
+      // mask: three-quarter view → faces you → lifts away and dissolves
+      var face = smoothstep(0, 0.4, p);
+      var lift = smoothstep(0.62, 0.95, p);
+      mask.rotation.y = (1 - face) * 0.75 + px * 0.25 + (reduce ? 0 : Math.sin(t * 0.4) * 0.04);
+      mask.rotation.x = py * 0.15 - lift * 0.35;
+      mask.position.set(0, lift * 1.1 + (reduce ? 0 : Math.sin(t * 0.8) * 0.03), lift * 2.6);
+      var opacity = 1 - lift;
+      maskMat.opacity = opacity;
+      lineMat.opacity = 0.55 * opacity;
+      mask.visible = opacity > 0.01;
+      eyes.forEach(function (s) { s.material.opacity = (0.55 + Math.sin(t * 2) * 0.25) * opacity; });
+
+      // ring of builds: slow orbit, faster while you scroll through
+      ring.rotation.y = (reduce ? 0 : t * 0.08) + p * Math.PI * 1.5;
+      ring.rotation.x = 0.32 - lift * 0.18;
+      ring.scale.setScalar(ringBase * (1 + lift * 0.12));
+
+      camera.lookAt(0, 0, 0);
       renderer.render(scene, camera);
+
+      var w = canvas.clientWidth, h = canvas.clientHeight;
+      nodes.forEach(function (nd) {
+        nd.mesh.getWorldPosition(v);
+        var depthZ = v.z;
+        v.project(camera);
+        var x = (v.x * 0.5 + 0.5) * w, y = (-v.y * 0.5 + 0.5) * h;
+        var front = depthZ > -0.3;
+        var behindMask = !front && opacity > 0.3 && Math.abs(v.x) < 0.28;
+        nd.el.style.transform = "translate(" + x.toFixed(1) + "px," + y.toFixed(1) + "px)";
+        nd.el.style.opacity = behindMask ? 0.12 : front ? 1 : 0.45;
+        nd.el.style.zIndex = front ? 3 : 1;
+      });
     }
     frame();
   })();

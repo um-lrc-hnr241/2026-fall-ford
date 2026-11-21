@@ -9,9 +9,9 @@
     /* first visit this session: cover the page until the boot-up intro takes over (script.js) */
     try { if (!sessionStorage.getItem("ford-booted") && !matchMedia("(prefers-reduced-motion: reduce)").matches) document.documentElement.classList.add("intro-pending"); } catch (e) {}
   </script>
-  <link rel="stylesheet" href="styles.css?v=20261120f">
+  <link rel="stylesheet" href="styles.css?v=20261120h">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js" defer></script>
-  <script src="script.js?v=20261120f" defer></script>
+  <script src="script.js?v=20261120h" defer></script>
 </head>
 <body>
   <a class="skip-link" href="#main">Skip to main content</a>
@@ -164,14 +164,19 @@
       </div>
     </section>
 
-    <section class="maze-section" id="maze" aria-labelledby="maze-title">
-      <div class="maze-sticky">
-        <canvas class="maze-gl" aria-label="A three-dimensional maze of concentric walls with a glowing core at its center. Scroll to move inward; drag to turn it." role="img"></canvas>
-        <div class="wrap maze-copy">
-          <p class="label">Interlude <span class="dim">/</span> The maze</p>
-          <h2 id="maze-title">The maze</h2>
-          <p class="maze-hint">Scroll to walk inward. Drag to turn it.</p>
+    <section class="mask-section" id="mask" aria-labelledby="mask-title">
+      <div class="mask-sticky">
+        <canvas class="mask-gl" role="img" aria-label="A silver mask in three dimensions with Team Ford's eight builds orbiting it. As you scroll it turns to face you, then lifts away, leaving the builds circling an empty center."></canvas>
+        <div class="orbit-labels"></div>
+        <div class="wrap mask-copy">
+          <p class="label">Interlude <span class="dim">/</span> The mask</p>
+          <h2 id="mask-title">The mask</h2>
+          <p class="mask-hint">Scroll to lift it. Our builds orbit what is underneath.</p>
         </div>
+        <blockquote class="mask-coda">
+          <p>“When all the layers are gone, there is nothing left, no true self to be found.”</p>
+          <footer><a href="builds/#build-6">Build 6</a></footer>
+        </blockquote>
       </div>
     </section>
 

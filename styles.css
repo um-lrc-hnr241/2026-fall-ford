@@ -2374,3 +2374,394 @@ body > .site-header {
 .boot.is-opening {
   pointer-events: none;
 }
+
+/* =====================================================================
+   Intro v2: gate → decoded lines → TEAM FORD slam → eyes open
+   ===================================================================== */
+
+.boot {
+  cursor: default;
+}
+
+.boot-gate,
+.boot-stage {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(40rem, calc(100% - 2.5rem));
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.boot-gate {
+  display: grid;
+  justify-items: center;
+  gap: 1.1rem;
+  transition: opacity 0.6s ease, filter 0.6s ease;
+}
+
+.boot.is-running .boot-gate {
+  opacity: 0;
+  filter: blur(8px);
+  pointer-events: none;
+}
+
+.boot-gate .boot-kicker {
+  margin: 0 0 0.6rem;
+  padding: 0;
+  border: 0;
+}
+
+.boot-enter {
+  position: relative;
+  overflow: hidden;
+  padding: 1.05rem 2.6rem;
+  border: 1px solid rgb(248 248 246 / 55%);
+  font-family: inherit;
+  font-size: 0.95rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: var(--bone);
+  background: rgb(27 42 68 / 25%);
+  cursor: pointer;
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+
+.boot-enter::before {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(100deg, transparent 30%, rgb(248 248 246 / 22%) 50%, transparent 70%);
+  transform: translateX(-100%);
+  animation: sweep 2.8s ease-in-out infinite;
+  content: "";
+}
+
+.boot-enter:hover,
+.boot-enter:focus-visible {
+  border-color: var(--bone);
+  background: rgb(27 42 68 / 55%);
+}
+
+.boot-silent {
+  padding: 0.3rem 0.6rem;
+  border: 0;
+  font-family: inherit;
+  font-size: 0.72rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--taupe);
+  background: none;
+  cursor: pointer;
+}
+
+.boot-silent:hover {
+  color: var(--bone);
+}
+
+.boot-note {
+  margin: 0;
+  font-size: 0.7rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgb(108 116 130 / 70%);
+}
+
+@keyframes sweep {
+  60%, 100% {
+    transform: translateX(100%);
+  }
+}
+
+.boot-stage {
+  pointer-events: none;
+}
+
+.boot-line-lead {
+  margin: 0 0 1.6rem;
+  font-size: clamp(1.6rem, 5vw, 2.6rem);
+  font-style: italic;
+  color: var(--bone);
+}
+
+.boot-line-lead span {
+  display: inline-block;
+  opacity: 0;
+  filter: blur(12px);
+  transform: translateY(0.5em) scale(1.08);
+}
+
+.boot-line-lead.is-in span {
+  animation: rise-in 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) var(--d) forwards;
+}
+
+@keyframes rise-in {
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: none;
+    text-shadow: 0 0 18px rgb(223 228 236 / 35%);
+  }
+}
+
+.boot-readout .boot-line {
+  position: relative;
+  margin: 0.35rem 0;
+  font-size: clamp(0.85rem, 2.2vw, 1.05rem);
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  color: var(--ash);
+  opacity: 0;
+  filter: blur(6px);
+  transition: opacity 0.5s ease, filter 0.7s ease, letter-spacing 0.9s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.boot-readout .boot-line.is-in {
+  opacity: 1;
+  filter: blur(0);
+  letter-spacing: 0.16em;
+}
+
+.boot-readout .boot-line.is-in::after {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgb(248 248 246 / 30%), transparent);
+  mix-blend-mode: screen;
+  animation: sweep-line 0.9s ease-out forwards;
+  content: "";
+}
+
+@keyframes sweep-line {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(100%); opacity: 0; }
+}
+
+.boot-stage.is-clearing .boot-line-lead,
+.boot-stage.is-clearing .boot-readout {
+  opacity: 0;
+  filter: blur(10px);
+  transform: translateY(-0.6rem);
+  transition: opacity 0.4s ease, filter 0.4s ease, transform 0.4s ease;
+}
+
+.boot-title {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: 0;
+  font-size: clamp(3.2rem, 13vw, 9rem);
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  color: var(--bone);
+  transform: translate(-50%, -50%);
+}
+
+.boot-title span {
+  display: inline-block;
+  opacity: 0;
+  filter: blur(22px);
+  transform: scale(1.9);
+}
+
+.boot-title.is-in span {
+  animation: slam-in 0.55s cubic-bezier(0.1, 0.9, 0.2, 1) var(--d) forwards;
+}
+
+@keyframes slam-in {
+  to {
+    opacity: 1;
+    filter: blur(0);
+    transform: none;
+    text-shadow: 0 0 40px rgb(143 163 192 / 55%);
+  }
+}
+
+.boot-flash {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--bone);
+  box-shadow: 0 0 30px 6px rgb(223 228 236 / 60%);
+  opacity: 0;
+  transform: scaleX(0);
+}
+
+.boot.is-hit .boot-flash {
+  animation: flash-line 1.2s ease-out forwards;
+}
+
+@keyframes flash-line {
+  0% { opacity: 1; transform: scaleX(0); }
+  25% { opacity: 1; transform: scaleX(1); }
+  100% { opacity: 0; transform: scaleX(1); }
+}
+
+.boot.is-hit {
+  animation: shake 0.45s ease-out;
+}
+
+@keyframes shake {
+  20% { transform: translate(-4px, 2px); }
+  40% { transform: translate(3px, -2px); }
+  60% { transform: translate(-2px, 1px); }
+  80% { transform: translate(1px, 0); }
+}
+
+.boot.is-opening .boot-stage,
+.boot.is-opening .boot-gate {
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+/* =====================================================================
+   The mask in 3D, with the ring of builds
+   ===================================================================== */
+
+.mask-section {
+  display: none;
+  position: relative;
+  height: 300vh;
+  margin-top: clamp(4rem, 9vw, 7rem);
+  --mask-p: 0;
+}
+
+.mask-section.is-ready {
+  display: block;
+}
+
+.mask-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  border-top: 3px double var(--line);
+  border-bottom: 3px double var(--line);
+}
+
+.mask-gl {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.orbit-labels {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.orbit-label {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: grid;
+  justify-items: center;
+  gap: 0.15rem;
+  margin: 0.9rem 0 0 -5rem;
+  width: 10rem;
+  text-align: center;
+  text-decoration: none;
+  transition: opacity 0.4s ease;
+  will-change: transform;
+}
+
+a.orbit-label {
+  pointer-events: auto;
+}
+
+.orbit-n {
+  font-size: 1.35rem;
+  color: var(--bone);
+}
+
+.orbit-d {
+  font-size: 0.66rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+.orbit-label.is-open .orbit-n,
+.orbit-label.is-open .orbit-d {
+  color: var(--taupe);
+}
+
+.orbit-label.is-team .orbit-n {
+  text-shadow: 0 0 14px rgb(223 228 236 / 60%);
+}
+
+a.orbit-label:hover .orbit-n,
+a.orbit-label:focus-visible .orbit-n {
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.mask-copy {
+  position: relative;
+  z-index: 3;
+  padding-top: clamp(4.5rem, 10vh, 7rem);
+  pointer-events: none;
+  opacity: calc(1 - var(--mask-p) * 2.6);
+}
+
+.mask-copy h2 {
+  margin: 0.6rem 0 0.4rem;
+  font-size: clamp(2.8rem, 7vw, 5rem);
+}
+
+.mask-hint {
+  margin: 0;
+  color: var(--ash);
+}
+
+.mask-coda {
+  position: absolute;
+  left: 50%;
+  bottom: clamp(2.5rem, 9vh, 5rem);
+  z-index: 3;
+  width: min(36rem, calc(100% - 2.5rem));
+  margin: 0;
+  text-align: center;
+  transform: translateX(-50%);
+  opacity: calc((var(--mask-p) - 0.78) * 6);
+}
+
+.mask-coda p {
+  margin: 0;
+  font-size: clamp(1.2rem, 2.8vw, 1.6rem);
+  font-style: italic;
+  color: var(--bone);
+}
+
+.mask-coda footer {
+  margin-top: 0.5rem;
+  font-size: 0.72rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+}
+
+.mask-section + .section::before {
+  display: none;
+}
+
+@media (max-width: 34rem) {
+  .orbit-label {
+    width: 6.5rem;
+    margin-left: -3.25rem;
+  }
+
+  .orbit-n {
+    font-size: 1.1rem;
+  }
+
+  .orbit-d {
+    font-size: 0.56rem;
+    letter-spacing: 0.1em;
+  }
+}
