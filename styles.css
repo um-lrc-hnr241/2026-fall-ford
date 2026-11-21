@@ -3652,3 +3652,150 @@ html:root {
 .wordmark span {
   margin: 0 0.3em;
 }
+
+/* =====================================================================
+   HOST PROFILES (design-refresh): the six member pages
+   ===================================================================== */
+
+.host-profile {
+  position: relative;
+  overflow: hidden;
+}
+
+/* the host number, engraved large behind the name */
+.host-profile::before {
+  position: absolute;
+  top: 50%;
+  right: max(-1rem, calc((100vw - var(--max-width)) / 2 - 2rem));
+  font-family: var(--font-display);
+  font-size: clamp(12rem, 30vw, 26rem);
+  font-weight: 500;
+  line-height: 0.8;
+  color: transparent;
+  -webkit-text-stroke: 1px rgb(201 148 106 / 22%);
+  transform: translateY(-50%);
+  pointer-events: none;
+  content: attr(data-host);
+}
+
+.host-profile .wrap {
+  position: relative;
+}
+
+@media (min-width: 60rem) {
+  .host-profile .wrap {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(18rem, 24rem);
+    grid-template-areas:
+      "back  back"
+      "label panel"
+      "name  panel"
+      "lede  panel";
+    column-gap: clamp(2rem, 5vw, 5rem);
+    align-items: start;
+  }
+
+  .host-profile .back-link { grid-area: back; justify-self: start; }
+  .host-profile .label { grid-area: label; }
+  .host-profile h1 { grid-area: name; }
+  .host-profile .lede { grid-area: lede; }
+  .host-profile .member-meta { grid-area: panel; align-self: end; margin-top: 0; }
+}
+
+/* the profile as a diagnostic panel */
+.host-profile .member-meta {
+  display: block;
+  max-width: 26rem;
+  padding: 1.1rem 1.3rem 0.6rem;
+  border: 1px solid rgb(223 228 236 / 16%);
+  outline: 1px solid rgb(223 228 236 / 7%);
+  outline-offset: 5px;
+  background: rgb(18 21 27 / 82%);
+  backdrop-filter: blur(4px);
+}
+
+.host-profile .member-meta::before {
+  display: block;
+  margin-bottom: 0.4rem;
+  padding-bottom: 0.6rem;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--font-label);
+  font-size: var(--fs-caption);
+  letter-spacing: var(--track-label);
+  text-transform: lowercase;
+  color: var(--copper);
+  content: "host profile";
+}
+
+.host-profile .member-meta > div {
+  display: grid;
+  grid-template-columns: 9.5rem 1fr;
+  gap: 1rem;
+  align-items: baseline;
+  padding: 0.55rem 0;
+  border-bottom: 1px dotted var(--line);
+}
+
+.host-profile .member-meta > div:last-child {
+  border-bottom: 0;
+}
+
+.host-profile .member-meta dd {
+  margin: 0;
+}
+
+/* builds as a timeline */
+.member-page .entry-list {
+  position: relative;
+  max-width: 52rem;
+  padding-left: 1.6rem;
+}
+
+.member-page .entry-list::before {
+  position: absolute;
+  top: 0.5rem;
+  bottom: 0.5rem;
+  left: 0.35rem;
+  width: 1px;
+  background: linear-gradient(var(--copper), var(--line) 70%);
+  content: "";
+}
+
+.member-page .entry {
+  position: relative;
+  border-top: 0;
+  padding: 0.9rem 0;
+}
+
+.member-page .entry::before {
+  position: absolute;
+  top: 1.35rem;
+  left: calc(-1.6rem + 0.35rem - 0.4rem);
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 50%;
+  background: var(--copper);
+  box-shadow: 0 0 0 4px var(--ink), 0 0 12px rgb(201 148 106 / 50%);
+  content: "";
+}
+
+.member-page .entry.is-empty::before {
+  border: 1px dashed var(--taupe);
+  background: var(--ink);
+  box-shadow: 0 0 0 4px var(--ink);
+}
+
+@media (max-width: 34rem) {
+  .host-profile .member-meta > div {
+    grid-template-columns: 1fr;
+    gap: 0.1rem;
+  }
+}
+
+.host-profile::before {
+  top: 58%;
+  right: auto;
+  left: max(0.25rem, calc((100vw - var(--max-width)) / 2 + var(--gutter) - 1.2rem));
+  font-size: clamp(11rem, 26vw, 22rem);
+  -webkit-text-stroke: 1px rgb(201 148 106 / 30%);
+}
