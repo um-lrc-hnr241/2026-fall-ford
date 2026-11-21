@@ -737,243 +737,232 @@
   })();
 
   // =====================================================================
-  // The mask, in 3D (home page). An engraved silver mask; the eight builds
-  // orbit it as a ring. Scrolling turns the mask to face you, then lifts it
-  // away and dissolves it, leaving the builds circling an empty centre
-  // (Build 6: when all the layers are gone, no true self is found).
+  // Dolores dissolves (home page). The reflection photo is rebuilt from
+  // thousands of particles. Scrolling shatters it into a drifting cloud,
+  // gathers the cloud into the maze, then into TEAM FORD. Each particle
+  // keeps its colour from the photo and brightens as it travels.
   // Needs three.js + WebGL; otherwise the section stays hidden.
   // =====================================================================
-  (function mask3d() {
-    var section = document.querySelector(".mask-section");
-    var canvas = section && section.querySelector(".mask-gl");
-    var labelsBox = section && section.querySelector(".orbit-labels");
-    if (!section || !canvas || !labelsBox || !window.THREE) return;
+  (function doloresDissolve() {
+    var section = document.querySelector(".dissolve-section");
+    var canvas = section && section.querySelector(".dissolve-gl");
+    if (!section || !canvas || !window.THREE) return;
     var T = window.THREE;
     var renderer;
-    try { renderer = new T.WebGLRenderer({ canvas: canvas, antialias: true, alpha: false }); } catch (e) { return; }
-    section.classList.add("is-ready");
+    try { renderer = new T.WebGLRenderer({ canvas: canvas, antialias: false, alpha: false, powerPreference: "high-performance" }); } catch (e) { return; }
 
     var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    var small = window.innerWidth < 700;
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     renderer.setClearColor(0x090b10, 1);
-
     var scene = new T.Scene();
-    scene.fog = new T.Fog(0x090b10, 6, 14);
-    var camera = new T.PerspectiveCamera(36, 1, 0.1, 60);
-    camera.position.set(0, 0.25, 6.2);
+    var camera = new T.PerspectiveCamera(40, 1, 0.1, 100);
+    camera.position.set(0, 0, 9);
 
-    scene.add(new T.HemisphereLight(0x8fa3c0, 0x090b10, 0.6));
-    var key = new T.DirectionalLight(0xf8f8f6, 1.1);
-    key.position.set(2.5, 2.5, 4);
-    scene.add(key);
-    var rim = new T.DirectionalLight(0x5f7fb0, 1.2);
-    rim.position.set(-3, 1, -3);
-    scene.add(rim);
+    var COLS = small ? 150 : 230, ROWS = Math.round(COLS / 1.5);
+    var N = COLS * ROWS;
+    var W = 6.6, H = W / 1.5;
 
-    // ---------------------------------------------------------- mask geometry
-    // a curved face built on a grid; eye and mouth openings are left out
-    var NU = 200, NV = 250;
-    function inside(X, Y) {
-      var w = Y < 0 ? 1 - 0.36 * -Y : 1;
-      return (X / w) * (X / w) + Y * Y <= 1;
-    }
-    function hole(X, Y) {
-      var ex = (Math.abs(X) - 0.33) / 0.15, ey = (Y - 0.17 - 0.04 * (Math.abs(X) - 0.33) / 0.15) / 0.065;
-      if (ex * ex + ey * ey < 1) return true;
-      var mx = X / 0.21, my = (Y + 0.47 - 0.05 * mx * mx) / 0.028;
-      return mx * mx + my * my < 1;
-    }
-    function g(x, s) { return Math.exp(-(x / s) * (x / s)); }
-    function depth(X, Y) {
-      var z = 0.72 * Math.sqrt(Math.max(0, 1 - X * X * 0.92 - Y * Y * 0.55));
-      var nose = Y > -0.32 && Y < 0.32 ? (0.32 - Y) / 0.64 : 0;
-      z += 0.24 * g(X, 0.1 + 0.05 * (1 - nose)) * Math.pow(nose, 0.8) * (Y > -0.3 ? 1 : 0);
-      z += 0.07 * g(Y - 0.33, 0.07) * g(X, 0.62);
-      z -= 0.1 * g(Math.abs(X) - 0.33, 0.18) * g(Y - 0.17, 0.11);
-      z += 0.06 * g(Math.abs(X) - 0.38, 0.2) * g(Y + 0.14, 0.18);
-      z += 0.05 * g(X, 0.24) * g(Y + 0.47, 0.07);
-      z += 0.05 * g(X, 0.2) * g(Y + 0.8, 0.12);
-      return z;
-    }
+    // seeded random so everyone sees the same shapes
+    var seed = 7;
+    function rnd() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
 
-    var pos = [], idx = [], keep = [];
-    for (var j = 0; j < NV; j++) {
-      for (var i = 0; i < NU; i++) {
-        var X = (i / (NU - 1)) * 2 - 1, Y = (j / (NV - 1)) * 2 - 1;
-        pos.push(X * 0.92, Y * 1.22, depth(X, Y));
-        keep.push(inside(X, Y));
+    // ---- shape B: an original concentric maze glyph, as points along its lines
+    function mazePoints(n) {
+      var segs = [];
+      var rings = [0.45, 0.85, 1.25, 1.65, 2.05];
+      rings.forEach(function (r, i) {
+        var gap = 0.5 / r + 0.15, start = i * 2.3 + 0.6;
+        segs.push({ type: "arc", r: r, a0: start + gap, a1: start + Math.PI * 2 - 0.05, len: r * (Math.PI * 2 - gap) });
+        if (i < rings.length - 1) {
+          for (var k = 0; k < 2 + (i % 2); k++) {
+            var a = start + 1.1 + k * 2.4;
+            segs.push({ type: "line", a: a, r0: r, r1: rings[i + 1], len: rings[i + 1] - r });
+          }
+        }
+      });
+      var total = segs.reduce(function (s, g) { return s + g.len; }, 0);
+      var out = new Float32Array(n * 3);
+      for (var p = 0; p < n; p++) {
+        var pick = rnd() * total, g = segs[0];
+        for (var s = 0; s < segs.length; s++) { pick -= segs[s].len; if (pick <= 0) { g = segs[s]; break; } }
+        var x, y, j = (rnd() - 0.5) * 0.035;
+        if (g.type === "arc") {
+          var ang = g.a0 + rnd() * (g.a1 - g.a0);
+          x = Math.cos(ang) * (g.r + j); y = Math.sin(ang) * (g.r + j);
+        } else {
+          var rr = g.r0 + rnd() * (g.r1 - g.r0);
+          x = Math.cos(g.a) * rr + j; y = Math.sin(g.a) * rr + j;
+        }
+        out[p * 3] = x; out[p * 3 + 1] = y; out[p * 3 + 2] = (rnd() - 0.5) * 0.08;
       }
+      return out;
     }
-    function vid(i, j) { return j * NU + i; }
-    for (var jj = 0; jj < NV - 1; jj++) {
-      for (var ii = 0; ii < NU - 1; ii++) {
-        var a = vid(ii, jj), b = vid(ii + 1, jj), c = vid(ii, jj + 1), d = vid(ii + 1, jj + 1);
-        if (!(keep[a] && keep[b] && keep[c] && keep[d])) continue;
-        var cx = ((ii + 0.5) / (NU - 1)) * 2 - 1, cy = ((jj + 0.5) / (NV - 1)) * 2 - 1;
-        if (hole(cx, cy)) continue;
-        idx.push(a, c, b, b, c, d);
+
+    // ---- shape C: TEAM FORD, sampled from text drawn on a canvas
+    function textPoints(n) {
+      var c = document.createElement("canvas");
+      c.width = 1200; c.height = 260;
+      var x = c.getContext("2d");
+      x.fillStyle = "#fff";
+      x.font = "400 190px 'Times New Roman', Times, serif";
+      x.textAlign = "center"; x.textBaseline = "middle";
+      x.fillText("TEAM FORD", 600, 138);
+      var d = x.getImageData(0, 0, c.width, c.height).data;
+      var hits = [];
+      for (var yy = 0; yy < c.height; yy += 2) for (var xx = 0; xx < c.width; xx += 2) if (d[(yy * c.width + xx) * 4 + 3] > 128) hits.push(xx, yy);
+      var out = new Float32Array(n * 3), sc = (small ? 4.6 : 6.4) / c.width;
+      for (var p = 0; p < n; p++) {
+        var h = ((rnd() * hits.length / 2) | 0) * 2;
+        out[p * 3] = (hits[h] - c.width / 2 + rnd() * 2) * sc;
+        out[p * 3 + 1] = -(hits[h + 1] - c.height / 2 + rnd() * 2) * sc;
+        out[p * 3 + 2] = (rnd() - 0.5) * 0.05;
       }
+      return out;
     }
-    var geo = new T.BufferGeometry();
-    geo.setAttribute("position", new T.Float32BufferAttribute(pos, 3));
-    geo.setIndex(idx);
-    geo.computeVertexNormals();
 
-    var maskMat = new T.MeshStandardMaterial({ color: 0xcfd5df, metalness: 0.55, roughness: 0.38, side: T.DoubleSide, transparent: true });
-    var mask = new T.Group();
-    mask.add(new T.Mesh(geo, maskMat));
+    var img = new Image();
+    img.src = "images/dolores-maze.jpg";
+    img.decode().then(build).catch(function () {});
 
-    // engraved contour lines across the face
-    var lpos = [];
-    for (var row = 4; row < NV; row += 8) {
-      for (var col = 0; col < NU - 1; col++) {
-        var X1 = (col / (NU - 1)) * 2 - 1, X2 = ((col + 1) / (NU - 1)) * 2 - 1, YY = (row / (NV - 1)) * 2 - 1;
-        if (!inside(X1, YY) || !inside(X2, YY) || hole(X1, YY) || hole(X2, YY)) continue;
-        lpos.push(X1 * 0.92, YY * 1.22, depth(X1, YY) + 0.004, X2 * 0.92, YY * 1.22, depth(X2, YY) + 0.004);
+    var uniforms, points;
+
+    function build() {
+      // shape A: the photo, one particle per sampled pixel
+      var c = document.createElement("canvas");
+      c.width = COLS; c.height = ROWS;
+      var x = c.getContext("2d");
+      x.drawImage(img, 0, 0, COLS, ROWS);
+      var px = x.getImageData(0, 0, COLS, ROWS).data;
+
+      var posA = new Float32Array(N * 3), color = new Float32Array(N * 3), rand = new Float32Array(N * 4);
+      for (var j = 0; j < ROWS; j++) {
+        for (var i = 0; i < COLS; i++) {
+          var k = j * COLS + i;
+          posA[k * 3] = (i / (COLS - 1) - 0.5) * W;
+          posA[k * 3 + 1] = (0.5 - j / (ROWS - 1)) * H;
+          posA[k * 3 + 2] = 0;
+          // a cool, muted grade to sit in the site's navy palette
+          var r = px[k * 4] / 255, g = px[k * 4 + 1] / 255, b = px[k * 4 + 2] / 255;
+          var l = r * 0.3 + g * 0.59 + b * 0.11;
+          color[k * 3] = l * 0.55 + r * 0.45;
+          color[k * 3 + 1] = l * 0.55 + g * 0.45;
+          color[k * 3 + 2] = Math.min(1, l * 0.55 + b * 0.45 + 0.04);
+          rand[k * 4] = rnd(); rand[k * 4 + 1] = rnd(); rand[k * 4 + 2] = rnd(); rand[k * 4 + 3] = rnd();
+        }
       }
+
+      var geo = new T.BufferGeometry();
+      geo.setAttribute("position", new T.BufferAttribute(posA, 3));
+      geo.setAttribute("posB", new T.BufferAttribute(mazePoints(N), 3));
+      geo.setAttribute("posC", new T.BufferAttribute(textPoints(N), 3));
+      geo.setAttribute("color", new T.BufferAttribute(color, 3));
+      geo.setAttribute("rand", new T.BufferAttribute(rand, 4));
+
+      uniforms = {
+        uP: { value: 0 },
+        uTime: { value: 0 },
+        uSize: { value: 4.3 * renderer.getPixelRatio() },
+        uScale: { value: 1 }
+      };
+
+      var mat = new T.ShaderMaterial({
+        uniforms: uniforms,
+        transparent: true,
+        depthWrite: false,
+        blending: T.AdditiveBlending,
+        vertexShader: [
+          "attribute vec3 posB; attribute vec3 posC; attribute vec4 rand; attribute vec3 color;",
+          "uniform float uP; uniform float uTime; uniform float uSize; uniform float uScale;",
+          "varying vec3 vColor; varying float vGlow; varying float vAlpha;",
+          "float ease(float t){ return t*t*(3.0-2.0*t); }",
+          "float seg(float p, float a, float b, float jitter){ return ease(clamp((p - a - jitter) / (b - a), 0.0, 1.0)); }",
+          "void main(){",
+          "  float j = rand.x * 0.08;",
+          // 0 photo | 0.12-0.40 shatter | 0.40-0.58 gather into maze | 0.72-0.92 become TEAM FORD
+          "  float shatter = seg(uP, 0.10, 0.38, j);",
+          "  float toMaze  = seg(uP, 0.38, 0.58, j);",
+          "  float toText  = seg(uP, 0.72, 0.92, j);",
+          "  vec3 p = position;",
+          "  p = mix(p, posB, toMaze);",
+          "  p = mix(p, posC, toText);",
+          // the cloud: each particle flies along its own path, peaking between shapes
+          "  float cloud = shatter * (1.0 - toMaze) + 0.55 * sin(3.14159 * toText);",
+          "  vec3 dir = normalize(vec3(rand.y - 0.5, rand.z - 0.5, rand.w - 0.35) + 0.0001);",
+          "  float t = uTime * (0.25 + rand.w * 0.35) + rand.x * 6.2831;",
+          "  vec3 swirl = vec3(sin(t + p.y * 0.8), cos(t * 0.9 + p.x * 0.7), sin(t * 0.7 + rand.y * 6.0)) * 0.6;",
+          "  p += (dir * (2.2 + rand.x * 3.2) + swirl) * cloud;",
+          // shapes breathe gently once formed
+          "  p += vec3(sin(uTime * 0.6 + rand.y * 6.28), cos(uTime * 0.5 + rand.z * 6.28), 0.0) * 0.012 * (toMaze + toText);",
+          "  vec4 mv = modelViewMatrix * vec4(p, 1.0);",
+          "  gl_Position = projectionMatrix * mv;",
+          "  float glow = max(cloud, max(toMaze * (1.0 - toText) , toText));",
+          "  gl_PointSize = uSize * uScale * mix(1.0, 0.55 + rand.z * 0.7, glow) * (9.0 / -mv.z);",
+          "  vGlow = glow;",
+          "  vColor = mix(color, vec3(0.86, 0.9, 0.97), clamp(glow * 1.1, 0.0, 1.0));",
+          "  vAlpha = mix(0.8, 0.85, glow);",
+          "}"
+        ].join("\n"),
+        fragmentShader: [
+          "varying vec3 vColor; varying float vGlow; varying float vAlpha;",
+          "void main(){",
+          "  vec2 c = gl_PointCoord - 0.5; float d = length(c);",
+          "  if (d > 0.5) discard;",
+          "  float soft = smoothstep(0.5, mix(0.42, 0.05, vGlow), d);",
+          "  gl_FragColor = vec4(vColor * mix(0.95, 1.05, vGlow), soft * vAlpha);",
+          "}"
+        ].join("\n")
+      });
+
+      points = new T.Points(geo, mat);
+      scene.add(points);
+      section.classList.add("is-ready");
+      onScroll();
     }
-    var lgeo = new T.BufferGeometry();
-    lgeo.setAttribute("position", new T.Float32BufferAttribute(lpos, 3));
-    var lineMat = new T.LineBasicMaterial({ color: 0x1b2a44, transparent: true, opacity: 0.55 });
-    mask.add(new T.LineSegments(lgeo, lineMat));
 
-    // a faint light behind the eye openings
-    var gc = document.createElement("canvas");
-    gc.width = gc.height = 64;
-    var gx = gc.getContext("2d");
-    var gr = gx.createRadialGradient(32, 32, 0, 32, 32, 32);
-    gr.addColorStop(0, "rgba(248,248,246,1)");
-    gr.addColorStop(0.4, "rgba(143,163,192,0.5)");
-    gr.addColorStop(1, "rgba(143,163,192,0)");
-    gx.fillStyle = gr;
-    gx.fillRect(0, 0, 64, 64);
-    var glowTex = new T.CanvasTexture(gc);
-    var eyes = [];
-    [-0.3, 0.3].forEach(function (x) {
-      var s = new T.Sprite(new T.SpriteMaterial({ map: glowTex, transparent: true, depthWrite: false, blending: T.AdditiveBlending, opacity: 0.8 }));
-      s.position.set(x, 0.2, 0.18);
-      s.scale.set(0.35, 0.22, 1);
-      mask.add(s);
-      eyes.push(s);
-    });
-    scene.add(mask);
-
-    // ---------------------------------------------------------- the ring of builds
-    var BUILDS = [
-      { n: "I", date: "Sep 11", iso: "2026-09-11" },
-      { n: "II", date: "Sep 25", iso: "2026-09-25", href: "builds/#build-2", team: true },
-      { n: "III", date: "Oct 9", iso: "2026-10-09" },
-      { n: "IV", date: "Oct 23", iso: "2026-10-23" },
-      { n: "V", date: "Nov 6", iso: "2026-11-06" },
-      { n: "VI", date: "Nov 20", iso: "2026-11-20", href: "builds/#build-6", team: true },
-      { n: "VII", date: "Dec 4", iso: "2026-12-04" },
-      { n: "VIII", date: "Dec 18", iso: "2026-12-18" }
-    ];
-    var now = new Date();
-    var ring = new T.Group();
-    ring.rotation.x = 0.32;
-    scene.add(ring);
-    var R = 2.15;
-    var pts = [];
-    for (var q = 0; q <= 160; q++) pts.push(new T.Vector3(Math.cos(q / 160 * Math.PI * 2) * R, 0, Math.sin(q / 160 * Math.PI * 2) * R));
-    ring.add(new T.Line(new T.BufferGeometry().setFromPoints(pts), new T.LineDashedMaterial({ color: 0x8fa3c0, dashSize: 0.06, gapSize: 0.05, transparent: true, opacity: 0.45 })));
-    ring.children[0].computeLineDistances();
-
-    var nodes = BUILDS.map(function (b, k) {
-      var ang = (k / BUILDS.length) * Math.PI * 2;
-      var doneB = new Date(b.iso + "T00:00:00") <= now;
-      var m = new T.Mesh(new T.SphereGeometry(doneB ? 0.05 : 0.035, 16, 16), new T.MeshBasicMaterial({ color: doneB ? 0xf8f8f6 : 0x6c7482 }));
-      m.position.set(Math.cos(ang) * R, 0, Math.sin(ang) * R);
-      ring.add(m);
-      var el = document.createElement(b.href && doneB ? "a" : "span");
-      el.className = "orbit-label " + (doneB ? "is-done" : "is-open") + (b.team ? " is-team" : "");
-      if (b.href && doneB) el.href = b.href;
-      el.innerHTML = '<span class="orbit-n">' + b.n + '</span><span class="orbit-d">Build ' + (k + 1) + " · " + b.date + (b.team && doneB ? " · team" : doneB ? "" : " · to come") + "</span>";
-      labelsBox.appendChild(el);
-      return { mesh: m, el: el };
-    });
-
-    // ---------------------------------------------------------- interaction
-    var progress = 0, smooth = 0;
+    // ---- scroll, pointer, render
+    var progress = 0, smooth = 0, mx = 0, my = 0, tx = 0, ty = 0;
     function onScroll() {
       var r = section.getBoundingClientRect();
       var span = section.offsetHeight - window.innerHeight;
       progress = span > 0 ? Math.min(Math.max(-r.top / span, 0), 1) : 0;
-      section.style.setProperty("--mask-p", progress.toFixed(3));
+      section.style.setProperty("--dp", progress.toFixed(3));
     }
     window.addEventListener("scroll", function () { requestAnimationFrame(onScroll); }, { passive: true });
-    onScroll();
-
-    var px = 0, py = 0, tx = 0, ty = 0;
     section.addEventListener("pointermove", function (e) {
-      var r = section.querySelector(".mask-sticky").getBoundingClientRect();
-      tx = ((e.clientX - r.left) / r.width - 0.5) * 2;
-      ty = ((e.clientY - r.top) / r.height - 0.5) * 2;
+      tx = (e.clientX / window.innerWidth - 0.5) * 2;
+      ty = (e.clientY / window.innerHeight - 0.5) * 2;
     });
 
     var visible = false;
-    new IntersectionObserver(function (en) { visible = en[0].isIntersecting; }, { rootMargin: "120px" }).observe(section);
+    new IntersectionObserver(function (en) { visible = en[0].isIntersecting; }, { rootMargin: "150px" }).observe(section);
 
     function resize() {
-      var w = canvas.clientWidth, h = canvas.clientHeight;
-      var pr = renderer.getPixelRatio();
+      var w = canvas.clientWidth, h = canvas.clientHeight, pr = renderer.getPixelRatio();
       if (canvas.width !== Math.round(w * pr) || canvas.height !== Math.round(h * pr)) {
         renderer.setSize(w, h, false);
         camera.aspect = w / h;
-        camera.position.z = w < 700 ? 12 : 6.2;
-        ringBase = w < 700 ? 0.68 : 1;
+        // fit the photo's width on narrow screens
+        var fitZ = (W / 2) / Math.tan((camera.fov * Math.PI / 180) / 2) / camera.aspect * 1.08;
+        // on narrow screens crop the photo's sides a little rather than shrinking it to a strip
+        camera.position.z = Math.max(9, fitZ * 0.72);
         camera.updateProjectionMatrix();
       }
     }
 
-    function smoothstep(a, b, x) { var t = Math.min(Math.max((x - a) / (b - a), 0), 1); return t * t * (3 - 2 * t); }
-    var v = new T.Vector3();
-    var ringBase = 1;
     var clock = new T.Clock();
-
-    function frame() {
+    (function frame() {
       requestAnimationFrame(frame);
-      if (!visible) return;
+      if (!visible || !uniforms) return;
       resize();
-      var t = clock.getElapsedTime();
-      smooth += (progress - smooth) * 0.07;
-      px += (tx - px) * 0.05; py += (ty - py) * 0.05;
-      var p = smooth;
-
-      // mask: three-quarter view → faces you → lifts away and dissolves
-      var face = smoothstep(0, 0.4, p);
-      var lift = smoothstep(0.62, 0.95, p);
-      mask.rotation.y = (1 - face) * 0.75 + px * 0.25 + (reduce ? 0 : Math.sin(t * 0.4) * 0.04);
-      mask.rotation.x = py * 0.15 - lift * 0.35;
-      mask.position.set(0, lift * 1.1 + (reduce ? 0 : Math.sin(t * 0.8) * 0.03), lift * 2.6);
-      var opacity = 1 - lift;
-      maskMat.opacity = opacity;
-      lineMat.opacity = 0.55 * opacity;
-      mask.visible = opacity > 0.01;
-      eyes.forEach(function (s) { s.material.opacity = (0.55 + Math.sin(t * 2) * 0.25) * opacity; });
-
-      // ring of builds: slow orbit, faster while you scroll through
-      ring.rotation.y = (reduce ? 0 : t * 0.08) + p * Math.PI * 1.5;
-      ring.rotation.x = 0.32 - lift * 0.18;
-      ring.scale.setScalar(ringBase * (1 + lift * 0.12));
-
-      camera.lookAt(0, 0, 0);
+      smooth += (progress - smooth) * (reduce ? 0.2 : 0.06);
+      mx += (tx - mx) * 0.04; my += (ty - my) * 0.04;
+      uniforms.uP.value = smooth;
+      uniforms.uTime.value = reduce ? 0 : clock.getElapsedTime();
+      var spin = smooth > 0.45 && smooth < 0.8 ? (smooth - 0.45) * 2.2 : smooth >= 0.8 ? 0.77 * (1 - Math.min((smooth - 0.8) / 0.12, 1)) : 0;
+      points.rotation.set(my * 0.12, mx * 0.18, -spin * 0.6);
       renderer.render(scene, camera);
-
-      var w = canvas.clientWidth, h = canvas.clientHeight;
-      nodes.forEach(function (nd) {
-        nd.mesh.getWorldPosition(v);
-        var depthZ = v.z;
-        v.project(camera);
-        var x = (v.x * 0.5 + 0.5) * w, y = (-v.y * 0.5 + 0.5) * h;
-        var front = depthZ > -0.3;
-        var behindMask = !front && opacity > 0.3 && Math.abs(v.x) < 0.28;
-        nd.el.style.transform = "translate(" + x.toFixed(1) + "px," + y.toFixed(1) + "px)";
-        nd.el.style.opacity = behindMask ? 0.12 : front ? 1 : 0.45;
-        nd.el.style.zIndex = front ? 3 : 1;
-      });
-    }
-    frame();
+    })();
   })();
 
   var stage = document.querySelector(".host-stage");
