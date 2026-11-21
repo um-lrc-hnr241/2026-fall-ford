@@ -2112,3 +2112,113 @@ button {
     font-size: 1.15rem;
   }
 }
+
+/* ---------- score toggle (header) ---------- */
+
+.score-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ash);
+  background: none;
+  cursor: pointer;
+}
+
+.score-toggle:hover,
+.score-toggle.is-on {
+  border-color: var(--ash);
+  color: var(--bone);
+}
+
+.score-bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 0.8rem;
+}
+
+.score-bars i {
+  display: block;
+  width: 2px;
+  height: 30%;
+  background: currentColor;
+}
+
+.score-toggle.is-on .score-bars i {
+  animation: score-bar 1.1s ease-in-out infinite;
+}
+
+.score-toggle.is-on .score-bars i:nth-child(2) { animation-delay: -0.35s; }
+.score-toggle.is-on .score-bars i:nth-child(3) { animation-delay: -0.7s; }
+
+@keyframes score-bar {
+  0%, 100% { height: 25%; }
+  50% { height: 100%; }
+}
+
+/* ---------- the maze in 3D ---------- */
+
+.maze-section {
+  display: none; /* shown by script.js when WebGL + three.js are available */
+  position: relative;
+  height: 280vh;
+  margin-top: clamp(4rem, 9vw, 7rem);
+  --maze-p: 0;
+}
+
+.maze-section.is-ready {
+  display: block;
+}
+
+.maze-sticky {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+  border-top: 3px double var(--line);
+  border-bottom: 3px double var(--line);
+}
+
+.maze-gl {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+  touch-action: pan-y;
+}
+
+.maze-gl:active {
+  cursor: grabbing;
+}
+
+.maze-copy {
+  position: relative;
+  z-index: 1;
+  padding-top: clamp(4.5rem, 10vh, 7rem);
+  pointer-events: none;
+  opacity: calc(1 - var(--maze-p) * 2.2);
+}
+
+.maze-copy h2 {
+  margin: 0.6rem 0 0.4rem;
+  font-size: clamp(2.8rem, 7vw, 5rem);
+}
+
+.maze-hint {
+  margin: 0;
+  color: var(--ash);
+}
+
+/* the fleuron divider doesn't belong above the 3D scene's neighbour */
+.maze-section + .section::before {
+  display: none;
+}

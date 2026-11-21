@@ -296,6 +296,356 @@
     });
   })();
 
+  // =====================================================================
+  // The score: an original, generated soundtrack (organ, pulsing
+  // arpeggio, ticking clock) in A minor. Off by default; a header button
+  // turns it on, and the choice is remembered across pages. Browsers only
+  // allow sound after a tap, so on later pages it resumes on first tap.
+  // =====================================================================
+  (function score() {
+    var header = document.querySelector(".site-header .wrap");
+    var AC = window.AudioContext || window.webkitAudioContext;
+    if (!header || !AC) return;
+
+    var KEY = "ford-score";
+    function pref() { try { return localStorage.getItem(KEY) === "on"; } catch (e) { return false; } }
+    function save(on) { try { localStorage.setItem(KEY, on ? "on" : "off"); } catch (e) {} }
+
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "score-toggle";
+    btn.setAttribute("aria-pressed", "false");
+    btn.innerHTML = '<span class="score-bars" aria-hidden="true"><i></i><i></i><i></i></span><span class="score-label">Score off</span>';
+    header.appendChild(btn);
+    var label = btn.querySelector(".score-label");
+
+    var ctx = null, master = null, verb = null, timer = null, playing = false;
+    var nextTime = 0, step = 0;
+    var BPM = 66, BEAT = 60 / BPM;
+    // A minor: Am – F – C – G, then Am – F – Dm – E (original progression)
+    var CHORDS = [
+      [57, 60, 64], [53, 57, 60], [48, 52, 55], [55, 59, 62],
+      [57, 60, 64], [53, 57, 60], [50, 53, 57], [52, 56, 59]
+    ];
+    function hz(m) { return 440 * Math.pow(2, (m - 69) / 12); }
+
+    function impulse(seconds) {
+      var len = Math.floor(ctx.sampleRate * seconds);
+      var buf = ctx.createBuffer(2, len, ctx.sampleRate);
+      for (var c = 0; c < 2; c++) {
+        var d = buf.getChannelData(c);
+        for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.6);
+      }
+      return buf;
+    }
+
+    function setup() {
+      ctx = new AC();
+      master = ctx.createGain();
+      master.gain.value = 0;
+      var lp = ctx.createBiquadFilter();
+      lp.type = "lowpass";
+      lp.frequency.value = 5200;
+      verb = ctx.createConvolver();
+      verb.buffer = impulse(5.5);
+      var wet = ctx.createGain(); wet.gain.value = 0.55;
+      var dry = ctx.createGain(); dry.gain.value = 0.6;
+      master.connect(lp);
+      lp.connect(dry).connect(ctx.destination);
+      lp.connect(verb).connect(wet).connect(ctx.destination);
+    }
+
+    // organ voice: drawbar-style harmonics with slow swell
+    function organ(midi, t, dur, vol, attack) {
+      var g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(vol, t + attack);
+      g.gain.setValueAtTime(vol, t + Math.max(attack, dur - 1.2));
+      g.gain.linearRampToValueAtTime(0.0001, t + dur);
+      g.connect(master);
+      [[1, 1], [2, 0.5], [3, 0.22], [4, 0.16], [6, 0.06], [8, 0.04]].forEach(function (h) {
+        var o = ctx.createOscillator();
+        var hg = ctx.createGain();
+        o.type = "sine";
+        o.frequency.value = hz(midi) * h[0];
+        o.detune.value = (Math.random() - 0.5) * 6;
+        hg.gain.value = h[1];
+        o.connect(hg).connect(g);
+        o.start(t);
+        o.stop(t + dur + 0.05);
+      });
+    }
+
+    function tick(t, vol) {
+      var len = Math.floor(ctx.sampleRate * 0.03);
+      var buf = ctx.createBuffer(1, len, ctx.sampleRate);
+      var d = buf.getChannelData(0);
+      for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 6);
+      var s = ctx.createBufferSource();
+      s.buffer = buf;
+      var bp = ctx.createBiquadFilter();
+      bp.type = "bandpass"; bp.frequency.value = 3200; bp.Q.value = 6;
+      var g = ctx.createGain(); g.gain.value = vol;
+      s.connect(bp).connect(g).connect(master);
+      s.start(t);
+    }
+
+    // one bar = 4 beats; 8 bars per cycle; layers enter as the cycles build
+    function schedule() {
+      while (nextTime < ctx.currentTime + 0.6) {
+        var bar = Math.floor(step / 8) % 8;
+        var cycle = Math.floor(step / 64);
+        var sub = step % 8; // eighth notes within the bar
+        var chord = CHORDS[bar];
+        var t = nextTime;
+
+        if (sub === 0) {
+          // sustained chord + low pedal
+          organ(chord[0] - 12, t, BEAT * 4.2, 0.05, 1.6);
+          chord.forEach(function (m) { organ(m, t, BEAT * 4.2, 0.035, 1.8); });
+          if (cycle >= 2) organ(chord[2] + 12, t, BEAT * 4.2, 0.02, 2.2);
+        }
+        if (sub % 2 === 0) tick(t, 0.05);
+        if (cycle >= 1) {
+          // pulsing arpeggio, rising through the chord
+          var pattern = [0, 1, 2, 1, 0, 1, 2, 3];
+          var idx = pattern[sub];
+          var note = idx === 3 ? chord[0] + 12 : chord[idx];
+          organ(note + 12, t, BEAT * 0.55, cycle >= 3 ? 0.03 : 0.022, 0.03);
+        }
+        nextTime += BEAT / 2;
+        step++;
+      }
+    }
+
+    function start() {
+      if (!ctx) setup();
+      ctx.resume();
+      if (playing) return;
+      playing = true;
+      nextTime = ctx.currentTime + 0.1;
+      step = 0;
+      master.gain.cancelScheduledValues(ctx.currentTime);
+      master.gain.setValueAtTime(master.gain.value, ctx.currentTime);
+      master.gain.linearRampToValueAtTime(0.9, ctx.currentTime + 4);
+      schedule();
+      timer = setInterval(schedule, 120);
+      btn.setAttribute("aria-pressed", "true");
+      btn.classList.add("is-on");
+      label.textContent = "Score on";
+    }
+
+    function stop() {
+      if (!playing) return;
+      playing = false;
+      clearInterval(timer);
+      master.gain.cancelScheduledValues(ctx.currentTime);
+      master.gain.setValueAtTime(master.gain.value, ctx.currentTime);
+      master.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.5);
+      btn.setAttribute("aria-pressed", "false");
+      btn.classList.remove("is-on");
+      label.textContent = "Score off";
+    }
+
+    btn.addEventListener("click", function (e) {
+      e.stopPropagation();
+      if (playing) { stop(); save(false); } else { start(); save(true); }
+    });
+
+    // carry the choice to the next page: resume on the first tap or key
+    if (pref()) {
+      label.textContent = "Score (tap to resume)";
+      var resume = function (e) {
+        if (e.target.closest && e.target.closest(".score-toggle")) return;
+        start();
+        window.removeEventListener("pointerdown", resume, true);
+        window.removeEventListener("keydown", resume, true);
+      };
+      window.addEventListener("pointerdown", resume, true);
+      window.addEventListener("keydown", resume, true);
+    }
+  })();
+
+  // =====================================================================
+  // The maze, in 3D (home page). Scrolling walks the camera inward toward
+  // the glowing core; dragging turns the maze. Needs three.js + WebGL; if
+  // either is missing the section simply stays hidden.
+  // =====================================================================
+  (function maze3d() {
+    var section = document.querySelector(".maze-section");
+    var canvas = section && section.querySelector(".maze-gl");
+    if (!section || !canvas || !window.THREE) return;
+    var T = window.THREE;
+    var renderer;
+    try {
+      renderer = new T.WebGLRenderer({ canvas: canvas, antialias: true });
+    } catch (e) { return; }
+    section.classList.add("is-ready");
+
+    var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+    renderer.setClearColor(0x090b10, 1);
+
+    var scene = new T.Scene();
+    scene.fog = new T.Fog(0x090b10, 9, 26);
+    var camera = new T.PerspectiveCamera(42, 1, 0.1, 100);
+
+    scene.add(new T.HemisphereLight(0x8fa3c0, 0x090b10, 0.55));
+    var key = new T.DirectionalLight(0xdfe4ec, 0.55);
+    key.position.set(6, 12, 4);
+    scene.add(key);
+    var coreLight = new T.PointLight(0xf8f8f6, 2.2, 9, 2);
+    coreLight.position.set(0, 0.6, 0);
+    scene.add(coreLight);
+
+    // seeded randomness so the maze is the same for everyone
+    var seed = 241;
+    function rand() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
+
+    var wallMat = new T.MeshStandardMaterial({ color: 0x1b2a44, roughness: 0.55, metalness: 0.25 });
+    var edgeMat = new T.LineBasicMaterial({ color: 0xdfe4ec, transparent: true, opacity: 0.5 });
+    var group = new T.Group();
+    scene.add(group);
+
+    function addMesh(geo) {
+      var m = new T.Mesh(geo, wallMat);
+      group.add(m);
+      group.add(new T.LineSegments(new T.EdgesGeometry(geo, 30), edgeMat));
+    }
+
+    var H = 0.6, TH = 0.09, RINGS = 6;
+    function arc(r, a0, a1) {
+      var s = new T.Shape();
+      s.absarc(0, 0, r + TH, a0, a1, false);
+      s.absarc(0, 0, r - TH, a1, a0, true);
+      var g = new T.ExtrudeGeometry(s, { depth: H, bevelEnabled: false, curveSegments: Math.max(8, Math.round((a1 - a0) * r * 10)) });
+      g.rotateX(-Math.PI / 2);
+      addMesh(g);
+    }
+    function radial(r0, r1, a) {
+      var len = r1 - r0;
+      var g = new T.BoxGeometry(len, H, TH * 2);
+      g.translate(r0 + len / 2, H / 2, 0);
+      g.rotateY(a); // matches the arcs, which the X-rotation mirrors
+      addMesh(g);
+    }
+
+    var radii = [];
+    for (var i = 0; i < RINGS; i++) radii.push(1.1 + i * 0.95);
+    radii.forEach(function (r, i) {
+      // one or two openings per ring, never lined up: you have to wind inward
+      var gaps = i % 2 ? 2 : 1;
+      var start = rand() * Math.PI * 2;
+      var gapW = 0.55 / r + 0.18;
+      var segs = [];
+      for (var g = 0; g < gaps; g++) segs.push(start + g * (Math.PI * 2 / gaps));
+      for (var k = 0; k < gaps; k++) {
+        var a0 = segs[k] + gapW;
+        var a1 = segs[k] + Math.PI * 2 / gaps;
+        arc(r, a0, a1);
+      }
+      if (i < RINGS - 1) {
+        var n = 2 + (i % 2);
+        for (var j = 0; j < n; j++) radial(r + TH, radii[i + 1] - TH, start + Math.PI / gaps / 2 + j * (Math.PI * 2 / n) + rand() * 0.4);
+      }
+    });
+
+    // floor with faint engraved circles
+    var floor = new T.Mesh(new T.CircleGeometry(radii[RINGS - 1] + 1.4, 96), new T.MeshStandardMaterial({ color: 0x0d1526, roughness: 0.9 }));
+    floor.rotation.x = -Math.PI / 2;
+    group.add(floor);
+    for (var e = 0; e < 14; e++) {
+      var rr = 0.6 + e * 0.48;
+      var pts = [];
+      for (var q = 0; q <= 128; q++) pts.push(new T.Vector3(Math.cos(q / 128 * Math.PI * 2) * rr, 0.005, Math.sin(q / 128 * Math.PI * 2) * rr));
+      group.add(new T.Line(new T.BufferGeometry().setFromPoints(pts), new T.LineBasicMaterial({ color: 0x2f4468, transparent: true, opacity: 0.35 })));
+    }
+
+    // the core: consciousness
+    var core = new T.Mesh(new T.SphereGeometry(0.28, 32, 32), new T.MeshBasicMaterial({ color: 0xf8f8f6 }));
+    core.position.y = 0.55;
+    group.add(core);
+    var glowCanvas = document.createElement("canvas");
+    glowCanvas.width = glowCanvas.height = 128;
+    var gctx = glowCanvas.getContext("2d");
+    var grad = gctx.createRadialGradient(64, 64, 0, 64, 64, 64);
+    grad.addColorStop(0, "rgba(248,248,246,0.9)");
+    grad.addColorStop(0.25, "rgba(223,228,236,0.35)");
+    grad.addColorStop(1, "rgba(143,163,192,0)");
+    gctx.fillStyle = grad;
+    gctx.fillRect(0, 0, 128, 128);
+    var glow = new T.Sprite(new T.SpriteMaterial({ map: new T.CanvasTexture(glowCanvas), transparent: true, depthWrite: false, blending: T.AdditiveBlending }));
+    glow.scale.set(2.4, 2.4, 1);
+    glow.position.y = 0.55;
+    group.add(glow);
+
+    // drifting dust
+    var dustGeo = new T.BufferGeometry();
+    var dust = new Float32Array(420 * 3);
+    for (var p = 0; p < 420; p++) {
+      var ang = rand() * Math.PI * 2, rad = rand() * 8;
+      dust[p * 3] = Math.cos(ang) * rad;
+      dust[p * 3 + 1] = rand() * 5;
+      dust[p * 3 + 2] = Math.sin(ang) * rad;
+    }
+    dustGeo.setAttribute("position", new T.BufferAttribute(dust, 3));
+    var dustPts = new T.Points(dustGeo, new T.PointsMaterial({ color: 0xdfe4ec, size: 0.035, transparent: true, opacity: 0.6, depthWrite: false }));
+    scene.add(dustPts);
+
+    // scroll → journey inward; drag → turn
+    var progress = 0, smooth = 0, drag = 0, dragSmooth = 0;
+    function onScroll() {
+      var r = section.getBoundingClientRect();
+      var span = section.offsetHeight - window.innerHeight;
+      progress = span > 0 ? Math.min(Math.max(-r.top / span, 0), 1) : 0;
+      section.style.setProperty("--maze-p", progress.toFixed(3));
+    }
+    window.addEventListener("scroll", function () { requestAnimationFrame(onScroll); }, { passive: true });
+    onScroll();
+
+    var down = false, lastX = 0;
+    canvas.addEventListener("pointerdown", function (e) { down = true; lastX = e.clientX; canvas.setPointerCapture(e.pointerId); });
+    canvas.addEventListener("pointermove", function (e) { if (!down) return; drag += (e.clientX - lastX) * 0.006; lastX = e.clientX; });
+    canvas.addEventListener("pointerup", function () { down = false; });
+    canvas.addEventListener("pointercancel", function () { down = false; });
+
+    var visible = false;
+    new IntersectionObserver(function (en) { visible = en[0].isIntersecting; }, { rootMargin: "100px" }).observe(section);
+
+    function resize() {
+      var w = canvas.clientWidth, h = canvas.clientHeight;
+      if (canvas.width !== Math.round(w * renderer.getPixelRatio()) || canvas.height !== Math.round(h * renderer.getPixelRatio())) {
+        renderer.setSize(w, h, false);
+        camera.aspect = w / h;
+        camera.fov = w < 700 ? 55 : 42;
+        camera.updateProjectionMatrix();
+      }
+    }
+
+    var clock = new T.Clock();
+    function frame() {
+      requestAnimationFrame(frame);
+      if (!visible) return;
+      resize();
+      var t = clock.getElapsedTime();
+      smooth += (progress - smooth) * 0.06;
+      dragSmooth += (drag - dragSmooth) * 0.12;
+      var p = reduce ? 0.35 : smooth;
+      var e2 = p * p * (3 - 2 * p);
+      var radius = 14 - e2 * 10.6;
+      var height = 12 - e2 * 9.2;
+      var angle = 0.6 + e2 * Math.PI * 2.2 + dragSmooth + (reduce ? 0 : t * 0.03);
+      camera.position.set(Math.cos(angle) * radius, height, Math.sin(angle) * radius);
+      camera.lookAt(0, 0.35 - e2 * 0.1, 0);
+      var pulse = 1 + Math.sin(t * 1.6) * 0.08;
+      glow.scale.set(2.4 * pulse, 2.4 * pulse, 1);
+      coreLight.intensity = 1.5 + e2 * 0.9 + Math.sin(t * 1.6) * 0.25;
+      if (!reduce) dustPts.rotation.y = t * 0.02;
+      renderer.render(scene, camera);
+    }
+    frame();
+  })();
+
   var stage = document.querySelector(".host-stage");
   if (!stage) return;
 
