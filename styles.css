@@ -1605,7 +1605,7 @@ h3 {
 }
 
 .js .hero {
-  height: 240vh; /* the extra scroll length is the reveal */
+  height: 210vh; /* the extra scroll length is the reveal */
 }
 
 .hero-scene {
@@ -1735,7 +1735,7 @@ html:not(.js) .scroll-hint {
   }
 
   .js .hero {
-    height: 200vh;
+    height: 185vh;
   }
 }
 
@@ -2773,7 +2773,7 @@ a.orbit-label:focus-visible .orbit-n {
 .dissolve-section {
   display: none;
   position: relative;
-  height: 420vh;
+  height: 330vh;
   margin-top: clamp(4rem, 9vw, 7rem);
   --dp: 0;
 }
@@ -3249,4 +3249,65 @@ html {
   bottom: -3px;
   left: 0;
   margin: 0;
+}
+
+/* =====================================================================
+   MOTION (design-refresh): one easing family and three durations,
+   shared by every reveal, hover and scene so the page moves as one.
+   ===================================================================== */
+
+html:root {
+  --ease: cubic-bezier(0.22, 0.8, 0.24, 1);      /* settle */
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1); /* scene changes */
+  --dur-1: 0.25s;  /* hovers, focus */
+  --dur-2: 0.7s;   /* reveals */
+  --dur-3: 1.2s;   /* scene changes: intro lids, hero */
+}
+
+/* section reveals: the same subtle fade and rise, once, everywhere */
+.js .reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity var(--dur-2) var(--ease), transform var(--dur-2) var(--ease);
+}
+
+.js .reveal.is-in {
+  opacity: 1;
+  transform: none;
+}
+
+a,
+button,
+summary,
+.host-card,
+.journal-shelf,
+.slice,
+.layer,
+.note-dot .dot,
+.essay summary,
+.toc a,
+.pie-legend a,
+.chip-row a {
+  transition-duration: var(--dur-1);
+  transition-timing-function: var(--ease);
+}
+
+.boot-lid {
+  transition: transform var(--dur-3) var(--ease-in-out);
+}
+
+.hero-gl,
+.dissolve-gl {
+  transition: opacity var(--dur-3) var(--ease);
+}
+
+.host-card:hover {
+  transform: translateY(-3px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .js .reveal {
+    opacity: 1;
+    transform: none;
+  }
 }

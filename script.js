@@ -255,6 +255,8 @@
       boot.classList.add("is-opening");
       root.classList.remove("waking");
       window.removeEventListener("keydown", onKey, true);
+      window.removeEventListener("wheel", onScrollIntent, true);
+      window.removeEventListener("touchmove", onScrollIntent, true);
       if (music) music.close();
       setTimeout(function () { boot.remove(); }, 1400);
     }
@@ -264,15 +266,29 @@
       open();
     }
 
+    // Skip instantly: any key, click or scroll ends the intro, except
+    // choosing on the gate (Enter / Space on its buttons, Tab to move).
     function onKey(e) {
-      if (e.key === "Escape") { skip(); return; }
-      if (!boot.classList.contains("is-running") && e.key === "Enter") { e.preventDefault(); run(true); }
+      var onGate = !boot.classList.contains("is-running");
+      if (onGate && (e.key === "Tab" || e.key === "Shift")) return;
+      if (onGate && (e.key === "Enter" || e.key === " ")) {
+        e.preventDefault();
+        if (document.activeElement && document.activeElement.classList.contains("boot-silent")) run(false);
+        else run(true);
+        return;
+      }
+      skip();
     }
+    function onScrollIntent() { skip(); }
 
     boot.querySelector(".boot-enter").addEventListener("click", function () { run(true); });
     boot.querySelector(".boot-silent").addEventListener("click", function () { run(false); });
     boot.querySelector(".boot-skip").addEventListener("click", skip);
+    // a click anywhere that isn't one of the gate's buttons skips
+    boot.addEventListener("click", function (e) { if (!e.target.closest("button")) skip(); });
     window.addEventListener("keydown", onKey, true);
+    window.addEventListener("wheel", onScrollIntent, { capture: true, passive: true });
+    window.addEventListener("touchmove", onScrollIntent, { capture: true, passive: true });
     boot.querySelector(".boot-enter").focus();
   })();
 
@@ -452,7 +468,7 @@
   })();
 
   // ---- pie slices sweep in, and sections rise in, as they scroll into view
-  var reveals = Array.prototype.slice.call(document.querySelectorAll(".section-head, .feature, .host-stage, .pie-legend"));
+  var reveals = Array.prototype.slice.call(document.querySelectorAll(".section-head, .feature, .host-stage, .pie-legend, .page-head .wrap, .narrative-head, .host-card, .journal-shelf, .bibliography li, .entry"));
   var pie = document.querySelector(".pie");
   if ("IntersectionObserver" in window) {
     reveals.forEach(function (el) { el.classList.add("reveal"); });
@@ -463,7 +479,7 @@
         it.target.classList.add("is-in");
         io.unobserve(it.target);
       });
-    }, { threshold: 0.2 });
+    }, { threshold: 0.12, rootMargin: "0px 0px -6% 0px" });
     reveals.concat(pie ? [pie] : []).forEach(function (el) { io.observe(el); });
   }
 
@@ -730,18 +746,8 @@
       if (playing) { stop(); save(false); } else { start(); save(true); }
     });
 
-    // carry the choice to the next page: resume on the first tap or key
-    if (pref()) {
-      label.textContent = "Score (tap to resume)";
-      var resume = function (e) {
-        if (e.target.closest && e.target.closest(".score-toggle")) return;
-        start();
-        window.removeEventListener("pointerdown", resume, true);
-        window.removeEventListener("keydown", resume, true);
-      };
-      window.addEventListener("pointerdown", resume, true);
-      window.addEventListener("keydown", resume, true);
-    }
+    // Sound never starts by itself: a saved "on" only changes the label.
+    if (pref()) label.textContent = "Score (tap to play)";
   })();
 
   // =====================================================================
