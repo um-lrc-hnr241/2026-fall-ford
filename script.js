@@ -197,6 +197,105 @@
     reveals.concat(pie ? [pie] : []).forEach(function (el) { io.observe(el); });
   }
 
+  // =====================================================================
+  // Full-screen reader for individual builds on member pages.
+  // Tapping "Read Build N" opens the essay over the whole screen instead
+  // of inside the narrow list. Without this script the <details> still
+  // opens inline, so nothing is lost.
+  // =====================================================================
+  (function buildReader() {
+    var essays = Array.prototype.slice.call(document.querySelectorAll("details.essay"));
+    if (!essays.length || typeof HTMLDialogElement === "undefined") return;
+
+    var who = (document.querySelector(".page-head h1") || {}).textContent || "";
+    var dialog = document.createElement("dialog");
+    dialog.className = "reader";
+    dialog.setAttribute("aria-labelledby", "reader-title");
+    dialog.innerHTML =
+      '<div class="reader-bar">' +
+      '  <p class="label reader-meta"></p>' +
+      '  <button class="reader-close" type="button" aria-label="Close">&times;</button>' +
+      "</div>" +
+      '<article class="reader-page">' +
+      '  <header class="reader-head"><h1 id="reader-title"></h1><p class="reader-sub"></p></header>' +
+      '  <div class="prose reader-body"></div>' +
+      '  <nav class="reader-nav" aria-label="Other builds">' +
+      '    <button class="reader-prev" type="button"></button>' +
+      '    <button class="reader-next" type="button"></button>' +
+      "  </nav>" +
+      "</article>";
+    document.body.appendChild(dialog);
+
+    var meta = dialog.querySelector(".reader-meta");
+    var title = dialog.querySelector("#reader-title");
+    var sub = dialog.querySelector(".reader-sub");
+    var body = dialog.querySelector(".reader-body");
+    var prev = dialog.querySelector(".reader-prev");
+    var next = dialog.querySelector(".reader-next");
+    var current = -1;
+
+    function info(i) {
+      var entry = essays[i].closest(".entry");
+      return {
+        date: (entry.querySelector(".label") || {}).textContent || "",
+        title: (entry.querySelector("h3") || {}).textContent || "",
+        sub: (entry.querySelector(".entry-title") || {}).textContent || ""
+      };
+    }
+
+    function show(i) {
+      current = i;
+      var d = info(i);
+      meta.textContent = who + " · " + d.date;
+      title.textContent = d.title;
+      sub.textContent = d.sub;
+      sub.hidden = !d.sub;
+      body.innerHTML = essays[i].querySelector(".prose").innerHTML;
+      prev.hidden = i === 0;
+      next.hidden = i === essays.length - 1;
+      if (i > 0) prev.textContent = "← " + info(i - 1).title;
+      if (i < essays.length - 1) next.textContent = info(i + 1).title + " →";
+      dialog.scrollTop = 0;
+    }
+
+    function open(i) {
+      show(i);
+      if (!dialog.open) {
+        dialog.showModal();
+        document.documentElement.classList.add("reader-open");
+        history.pushState({ reader: true }, "");
+      }
+      dialog.querySelector(".reader-close").focus();
+    }
+
+    function close() {
+      if (dialog.open) dialog.close();
+    }
+
+    dialog.addEventListener("close", function () {
+      document.documentElement.classList.remove("reader-open");
+      if (history.state && history.state.reader) history.back();
+      var summary = essays[current] && essays[current].querySelector("summary");
+      if (summary) summary.focus();
+    });
+
+    // phone back gesture / browser back closes the reader
+    window.addEventListener("popstate", function () {
+      if (dialog.open) dialog.close();
+    });
+
+    dialog.querySelector(".reader-close").addEventListener("click", close);
+    prev.addEventListener("click", function () { show(current - 1); });
+    next.addEventListener("click", function () { show(current + 1); });
+
+    essays.forEach(function (d, i) {
+      d.querySelector("summary").addEventListener("click", function (e) {
+        e.preventDefault();
+        open(i);
+      });
+    });
+  })();
+
   var stage = document.querySelector(".host-stage");
   if (!stage) return;
 

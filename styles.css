@@ -1973,3 +1973,142 @@ button {
   line-height: inherit;
   color: inherit;
 }
+
+/* ---------- full-screen reader for builds ---------- */
+
+.reader {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  max-width: none;
+  height: 100%;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  border: 0;
+  color: var(--bone);
+  background:
+    radial-gradient(ellipse at 50% -10%, rgb(27 42 68 / 55%), transparent 55%),
+    var(--ink);
+  overscroll-behavior: contain;
+}
+
+.reader[open] {
+  animation: reader-in 0.35s ease-out;
+}
+
+.reader::backdrop {
+  background: var(--ink);
+}
+
+@keyframes reader-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+}
+
+.reader-open,
+.reader-open body {
+  overflow: hidden;
+}
+
+.reader-bar {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem var(--gutter);
+  border-bottom: 3px double var(--line);
+  background: rgb(9 11 16 / 92%);
+  backdrop-filter: blur(8px);
+}
+
+.reader-close {
+  width: 2.6rem;
+  height: 2.6rem;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  font-size: 1.6rem;
+  line-height: 1;
+  color: var(--bone);
+  background: none;
+  cursor: pointer;
+}
+
+.reader-close:hover,
+.reader-close:focus-visible {
+  border-color: var(--bone);
+}
+
+.reader-page {
+  max-width: 44rem;
+  margin: 0 auto;
+  padding: clamp(2.5rem, 7vw, 5rem) var(--gutter) 4rem;
+}
+
+.reader-head {
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.75rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.reader-head h1 {
+  margin: 0;
+  font-size: clamp(3rem, 8vw, 5rem);
+}
+
+.reader-sub {
+  margin: 0.6rem 0 0;
+  font-size: 1.35rem;
+  font-style: italic;
+  color: var(--ash);
+}
+
+.reader-body {
+  max-width: none;
+  font-size: 1.3rem;
+  line-height: 1.75;
+}
+
+.reader-body p {
+  color: #e4e6ea;
+}
+
+.reader-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 3.5rem;
+  padding-top: 1.5rem;
+  border-top: 3px double var(--line);
+}
+
+.reader-nav button {
+  padding: 0.6rem 1.1rem;
+  border: 1px solid var(--line);
+  font-size: 0.85rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--bone);
+  background: none;
+  cursor: pointer;
+}
+
+.reader-nav button:hover {
+  border-color: var(--bone);
+}
+
+.reader-next {
+  margin-left: auto;
+}
+
+@media (max-width: 34rem) {
+  .reader-body {
+    font-size: 1.15rem;
+  }
+}
