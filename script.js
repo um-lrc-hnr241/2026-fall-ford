@@ -1031,6 +1031,25 @@
     update();
   })();
 
+  // =====================================================================
+  // Dormant states: unfinished builds are marked by date so they look
+  // intentional. Future builds sleep ("dormant"); past-due ones are
+  // "awaiting upload". Text in the cards is left exactly as written.
+  // =====================================================================
+  (function dormantStates() {
+    var DUE = { 1: "2026-09-11", 2: "2026-09-25", 3: "2026-10-09", 4: "2026-10-23", 5: "2026-11-06", 6: "2026-11-20", 7: "2026-12-04", 8: "2026-12-18" };
+    var today = new Date();
+    today.setHours(0, 0, 0, 0);
+    function past(n) { return DUE[n] && new Date(DUE[n] + "T00:00:00") <= today; }
+    Array.prototype.forEach.call(document.querySelectorAll(".entry.is-empty[id^='build-']"), function (li) {
+      var n = +li.id.replace("build-", "");
+      li.classList.add(past(n) ? "is-awaiting" : "is-dormant");
+    });
+    Array.prototype.forEach.call(document.querySelectorAll(".layer-card"), function (card) {
+      if (card.querySelector(".card-empty")) card.classList.add("is-dormant");
+    });
+  })();
+
   var stage = document.querySelector(".host-stage");
   if (!stage) return;
 
