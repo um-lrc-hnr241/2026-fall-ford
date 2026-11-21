@@ -2,22 +2,22 @@
    "Ford's Workshop": clinical, dark, polished wood. Palette from the planning doc. */
 
 :root {
-  /* Ford’s Workshop: warm wood, charcoal, and brass */
-  --ink: #141211;
-  --steel: #34353A;
-  --olive: #3B3B34;
-  --wood: #734C26;
-  --taupe: #85796F;
-  --amber: #CB8D45;
-  --gold: #E3B56D;
-  --ash: #ADA39A;
-  --bone: #F7F6F3;
+  /* Victorian night: navy, charcoal, black, crisp white */
+  --ink: #090b10;        /* black */
+  --steel: #2b2e34;      /* charcoal */
+  --olive: #1f2228;      /* deep charcoal */
+  --wood: #1b2a44;       /* navy */
+  --taupe: #6c7482;      /* slate */
+  --amber: #8fa3c0;      /* faded navy-blue (secondary accent) */
+  --gold: #dfe4ec;       /* pale silver-white (primary accent) */
+  --ash: #a7adb8;        /* pewter (muted text) */
+  --bone: #f8f8f6;       /* crisp white */
 
   --text: var(--bone);
   --muted: var(--ash);
   --background: var(--ink);
-  --surface: #211e1b;
-  --line: #51483e;
+  --surface: #12151b;
+  --line: #2c323d;
   --accent: var(--gold);
 
   --font-display: "Playfair Display", "Didot", "Bodoni 72", Georgia, serif;
@@ -469,141 +469,6 @@ p {
 .section-head p:not(.label) {
   margin: 0;
   color: var(--ash);
-}
-
-/* ---------- player piano ---------- */
-
-.piano-panel {
-  padding: clamp(1rem, 3vw, 2rem);
-  border-radius: 6px;
-}
-
-.piano-roll {
-  display: grid;
-  gap: 0.5rem;
-  max-width: 54rem;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.piano-row {
-  display: grid;
-  grid-template-columns: 4rem 5rem minmax(6rem, 0.7fr) minmax(9rem, 1fr);
-  align-items: center;
-  gap: 0.75rem;
-  min-height: 3.5rem;
-  padding: 0.35rem 0.75rem;
-  border: 1px solid rgb(247 246 243 / 22%);
-  background: rgb(9 11 16 / 58%);
-}
-
-.piano-row.is-unwritten {
-  border-color: #6c7482;
-  color: #c1c5cb;
-  background: rgb(9 11 16 / 78%);
-}
-
-.piano-row.is-written {
-  border-color: var(--bone);
-  background: rgb(247 246 243 / 12%);
-}
-
-.piano-key {
-  min-height: 2.5rem;
-  border: 1px solid var(--bone);
-  border-radius: 2px;
-  color: var(--ink);
-  background: var(--bone);
-  font: inherit;
-  cursor: pointer;
-}
-
-.piano-key:hover,
-.piano-key:active {
-  background: var(--gold);
-}
-
-.piano-row.is-unwritten .piano-key {
-  border-color: #a7adb8;
-  color: var(--bone);
-  background: #34353a;
-}
-
-.piano-key-number {
-  font-family: var(--font-display);
-  font-size: 1.2rem;
-  font-weight: 600;
-}
-
-.piano-date,
-.piano-status {
-  font-family: var(--font-mono);
-  font-size: 0.95rem;
-  letter-spacing: 0.04em;
-}
-
-.piano-build {
-  font-family: var(--font-display);
-  font-size: 1.2rem;
-  font-weight: 600;
-}
-
-.piano-row.is-unwritten .piano-status {
-  color: #c1c5cb;
-}
-
-.piano-row.is-written .piano-status {
-  color: var(--bone);
-}
-
-.piano-controls {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.75rem 1rem;
-  margin-top: 1rem;
-}
-
-.piano-play {
-  display: none;
-  padding: 0.65rem 1.1rem;
-  border: 1px solid var(--bone);
-  border-radius: 999px;
-  color: var(--ink);
-  background: var(--bone);
-  font: inherit;
-  cursor: pointer;
-}
-
-.js .piano-play {
-  display: inline-block;
-}
-
-.piano-play:hover {
-  background: var(--gold);
-}
-
-.piano-play:disabled {
-  cursor: wait;
-  opacity: 0.75;
-}
-
-.piano-feedback {
-  margin: 0;
-  color: var(--bone);
-}
-
-@media (max-width: 38rem) {
-  .piano-row {
-    grid-template-columns: 3rem 4.5rem minmax(0, 1fr);
-    gap: 0.5rem;
-  }
-
-  .piano-row .piano-status {
-    grid-column: 2 / -1;
-    padding-bottom: 0.35rem;
-  }
 }
 
 /* ---------- the nested host ---------- */
@@ -1723,75 +1588,187 @@ h3 {
   font-size: 0.9rem;
 }
 
-/* Ford’s Workshop: warm, dark readouts and a polished-wood finish. */
-body {
-  background: radial-gradient(ellipse at 50% -10%, rgb(115 76 38 / 24%), transparent 55%), var(--ink);
-}
+/* =====================================================================
+   Home hero: Dolores at the puddle. A sticky scene; scrolling through
+   the (taller) hero reveals the maze. script.js drives --mix (0→1) and,
+   where WebGL is available, renders the rippling water on .hero-gl.
+   ===================================================================== */
 
 .hero {
+  display: block;
+  min-height: 0;
+  padding: 0;
+  overflow: visible; /* must not clip, or the sticky scene can't stick */
+  background: var(--ink);
+  --mix: 0;
+  --progress: 0;
+}
+
+.js .hero {
+  height: 240vh; /* the extra scroll length is the reveal */
+}
+
+.hero-scene {
+  position: sticky;
+  top: 0;
+  display: grid;
+  height: 100vh;
+  height: 100svh;
+  align-items: end;
+  overflow: hidden;
+}
+
+.hero-media,
+.hero-img,
+.hero-gl,
+.hero-shade {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.hero-img {
+  object-fit: cover;
+  object-position: 62% 42%;
+}
+
+/* CSS fallback reveal (no WebGL): maze version fades in over her reflected face only */
+.hero-img-maze {
+  opacity: var(--mix);
+  -webkit-mask-image: radial-gradient(ellipse 34% 50% at 66% 42%, #000 0 25%, rgb(0 0 0 / 60%) 45%, transparent 70%);
+  mask-image: radial-gradient(ellipse 34% 50% at 66% 42%, #000 0 25%, rgb(0 0 0 / 60%) 45%, transparent 70%);
+}
+
+.hero-gl {
+  display: block;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+
+.hero.gl-on .hero-gl {
+  opacity: 1;
+}
+
+.hero.gl-on .hero-img {
+  visibility: hidden;
+}
+
+/* keep the title readable over a bright photo; muted Victorian night grade */
+.hero-shade {
   background:
-    linear-gradient(90deg, rgb(20 18 17 / 94%) 0%, rgb(20 18 17 / 76%) 48%, rgb(20 18 17 / 38%) 100%),
-    linear-gradient(180deg, rgb(20 18 17 / 36%), rgb(20 18 17 / 76%)),
-    url("images/deepdream.jpg") center / cover no-repeat;
+    linear-gradient(90deg, rgb(9 11 16 / 92%) 0%, rgb(9 11 16 / 70%) 32%, rgb(9 11 16 / 15%) 62%, transparent 80%),
+    linear-gradient(0deg, var(--ink) 0%, rgb(9 11 16 / 0%) 28%),
+    linear-gradient(180deg, rgb(9 11 16 / 55%) 0%, transparent 18%),
+    rgb(27 42 68 / 22%);
+  mix-blend-mode: normal;
 }
 
-.wood {
-  border-color: rgb(227 181 109 / 30%);
-  outline-color: rgb(227 181 109 / 14%);
-  background:
-    linear-gradient(180deg, rgb(255 255 255 / 5%), transparent 30%),
-    repeating-linear-gradient(92deg, rgb(0 0 0 / 0%) 0 7px, rgb(0 0 0 / 13%) 7px 9px, rgb(255 255 255 / 3%) 9px 15px, rgb(0 0 0 / 7%) 15px 22px),
-    linear-gradient(180deg, #734c26, #51351f 70%, #342419);
+.hero-copy {
+  position: relative;
+  z-index: 2;
+  padding-top: 6rem;
+  padding-bottom: clamp(3.5rem, 9vh, 6rem);
+  opacity: calc(1 - var(--mix) * 0.75);
+  transform: translateY(calc(var(--mix) * -2.5rem));
 }
 
-.site-header {
-  background: rgb(20 18 17 / 94%);
+.hero-copy .hero-intro {
+  max-width: 34rem;
 }
 
-.host-figure,
-.stage-side {
-  background: radial-gradient(ellipse at 50% 40%, #29231e, var(--ink) 75%);
-  border-color: rgb(227 181 109 / 18%);
+.scroll-hint {
+  position: absolute;
+  bottom: 1.4rem;
+  left: 50%;
+  z-index: 2;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: lowercase;
+  color: rgb(248 248 246 / 55%);
+  transform: translateX(-50%);
+  white-space: nowrap;
+  opacity: calc(1 - var(--progress) * 12);
+  animation: hint-bob 2.4s ease-in-out infinite;
 }
 
-.layer {
-  --lit: color-mix(in srgb, var(--gold) calc(var(--i) * 11%), #734c26);
+.scroll-hint::after {
+  display: block;
+  margin-top: 0.3rem;
+  text-align: center;
+  content: "\2193";
 }
 
-.layer.is-done:nth-of-type(even) {
-  fill: color-mix(in srgb, var(--lit) 78%, #141211);
+.no-js .scroll-hint,
+html:not(.js) .scroll-hint {
+  display: none;
 }
 
-.layer.is-selected,
-.layer.is-sounding {
-  filter: brightness(1.35) drop-shadow(0 0 10px rgb(227 181 109 / 65%));
+.reveal-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  z-index: 3;
+  width: calc(var(--progress) * 100%);
+  height: 2px;
+  background: rgb(248 248 246 / 40%);
 }
 
-.note-dot.is-done .dot {
-  background: var(--gold);
-  box-shadow: 0 0 14px rgb(227 181 109 / 38%);
+@keyframes hint-bob {
+  0%, 100% { translate: 0 0; }
+  50% { translate: 0 5px; }
 }
 
-.slice-link:nth-of-type(1) .slice { fill: #141211; }
-.slice-link:nth-of-type(2) .slice { fill: #34353A; }
-.slice-link:nth-of-type(3) .slice { fill: #3B3B34; }
-.slice-link:nth-of-type(4) .slice { fill: #734C26; }
-.slice-link:nth-of-type(5) .slice { fill: #51483e; }
-.slice-link:nth-of-type(6) .slice { fill: #CB8D45; }
+@media (max-width: 56rem) {
+  .hero-img {
+    object-position: 66% 40%;
+  }
 
-.slice-link:nth-of-type(-n+5) .slice-name,
-.slice-link:nth-of-type(-n+5) .slice-role {
-  fill: #F7F6F3;
+  .hero-shade {
+    background:
+      linear-gradient(0deg, var(--ink) 0%, rgb(9 11 16 / 88%) 38%, rgb(9 11 16 / 25%) 62%, transparent 80%),
+      linear-gradient(180deg, rgb(9 11 16 / 55%) 0%, transparent 18%),
+      rgb(27 42 68 / 20%);
+  }
+
+  .js .hero {
+    height: 200vh;
+  }
 }
 
-.slice-link:nth-of-type(6) .slice-name,
-.slice-link:nth-of-type(6) .slice-role {
-  fill: #141211;
+@media (prefers-reduced-motion: reduce) {
+  .scroll-hint {
+    animation: none;
+  }
+
+  .hero-copy {
+    transform: none;
+  }
 }
 
-.pie-legend li:nth-child(1) .swatch-dot { background: #141211 !important; }
-.pie-legend li:nth-child(2) .swatch-dot { background: #34353A !important; }
-.pie-legend li:nth-child(3) .swatch-dot { background: #3B3B34 !important; }
-.pie-legend li:nth-child(4) .swatch-dot { background: #734C26 !important; }
-.pie-legend li:nth-child(5) .swatch-dot { background: #51483e !important; }
-.pie-legend li:nth-child(6) .swatch-dot { background: #CB8D45 !important; }
+@media (max-width: 56rem) {
+  .hero-media {
+    height: 64%;
+  }
+
+  .hero-media::after {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(0deg, var(--ink) 0%, rgb(9 11 16 / 0%) 35%);
+    content: "";
+  }
+
+  .hero-shade {
+    background:
+      linear-gradient(0deg, var(--ink) 0%, var(--ink) 30%, rgb(9 11 16 / 0%) 55%),
+      linear-gradient(180deg, rgb(9 11 16 / 55%) 0%, transparent 16%),
+      rgb(27 42 68 / 16%);
+  }
+
+  .hero-copy {
+    padding-top: 0;
+  }
+}
