@@ -3076,3 +3076,177 @@ a.cite:hover {
 .feature figcaption {
   color: var(--taupe);
 }
+
+/* =====================================================================
+   READING (design-refresh): essays on Builds and in the member reader
+   ===================================================================== */
+
+html {
+  scroll-padding-top: 5.5rem; /* anchors land below the sticky header */
+}
+
+.prose {
+  max-width: 68ch;
+  font-size: calc(var(--fs-body) * 1.04);
+  line-height: 1.72;
+}
+
+.prose p {
+  margin: 0 0 1.55em;
+}
+
+/* refined drop cap + small-caps first line on each essay */
+.prose > p:first-of-type::first-letter {
+  float: left;
+  margin: 0.06em 0.09em 0 0;
+  font-family: var(--font-display);
+  font-size: 4.4em;
+  font-weight: 600;
+  line-height: 0.82;
+  color: var(--copper);
+}
+
+.prose > p:first-of-type::first-line {
+  font-variant-caps: small-caps;
+  letter-spacing: 0.04em;
+}
+
+/* pull quote that already exists in Build 6 */
+.prose .standalone-q {
+  margin: 2.4em 0;
+  padding: 0.2em 0 0.2em 1.4rem;
+  border-left: 2px solid var(--oxblood);
+  font-family: var(--font-display);
+  font-size: calc(var(--fs-lede) * 1.12);
+  font-style: italic;
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--bone);
+}
+
+/* Build 6 heading kicker */
+.h-kicker {
+  display: block;
+  margin-bottom: 0.45rem;
+  font-family: var(--font-label);
+  font-size: var(--fs-label);
+  font-weight: 600;
+  letter-spacing: var(--track-label);
+  text-transform: lowercase;
+  color: var(--copper);
+}
+
+/* Builds page: centred reading column, table of contents on wide screens */
+.builds-page .narrative-head,
+.builds-page .narrative .prose,
+.builds-page .narrative .placeholder {
+  margin-inline: auto;
+  max-width: 68ch;
+}
+
+.builds-page .narrative {
+  padding-top: clamp(3.5rem, 7vw, 6rem);
+}
+
+.toc {
+  display: none;
+}
+
+@media (min-width: 78rem) {
+  .builds-page .essays.has-toc {
+    display: grid;
+    grid-template-columns: 13rem minmax(0, 1fr);
+    column-gap: clamp(2rem, 4vw, 4rem);
+    align-items: start;
+  }
+
+  .builds-page .essays.has-toc > :not(.toc) {
+    grid-column: 2;
+  }
+
+  .toc {
+    display: block;
+    position: sticky;
+    top: 6rem;
+    grid-column: 1;
+    grid-row: 1 / span 20;
+    padding-top: 3.5rem;
+  }
+
+  .toc ol {
+    display: grid;
+    gap: 0.25rem;
+    margin: 0.8rem 0 0;
+    padding: 0;
+    list-style: none;
+    border-left: 1px solid var(--line);
+  }
+
+  .toc a {
+    display: block;
+    padding: 0.45rem 0 0.45rem 1rem;
+    margin-left: -1px;
+    border-left: 2px solid transparent;
+    font-size: 1rem;
+    line-height: 1.3;
+    color: var(--ash);
+    text-decoration: none;
+    transition: color 0.3s var(--ease, ease), border-color 0.3s var(--ease, ease);
+  }
+
+  .toc a span {
+    display: block;
+    font-family: var(--font-label);
+    font-size: var(--fs-caption);
+    letter-spacing: var(--track-label);
+    text-transform: lowercase;
+    color: var(--taupe);
+  }
+
+  .toc a:hover,
+  .toc a.is-current {
+    border-left-color: var(--copper);
+    color: var(--bone);
+  }
+}
+
+/* reading progress */
+.read-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 20;
+  width: 100%;
+  height: 2px;
+  background: var(--copper);
+  transform: scaleX(var(--read, 0));
+  transform-origin: 0 50%;
+  pointer-events: none;
+}
+
+.reader .read-progress {
+  position: sticky;
+  top: auto;
+  margin-top: -2px;
+}
+
+/* the member-page reader uses the same column */
+.reader-page {
+  max-width: calc(68ch + 2 * var(--gutter));
+}
+
+.reader-body {
+  font-size: calc(var(--fs-body) * 1.06);
+}
+
+.reader-bar {
+  position: sticky;
+}
+
+.reader-bar .read-progress {
+  position: absolute;
+  top: auto;
+  bottom: -3px;
+  left: 0;
+  margin: 0;
+}

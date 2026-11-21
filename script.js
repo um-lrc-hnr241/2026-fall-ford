@@ -495,6 +495,14 @@
       "  </nav>" +
       "</article>";
     document.body.appendChild(dialog);
+    var rbar = document.createElement("div");
+    rbar.className = "read-progress";
+    rbar.setAttribute("aria-hidden", "true");
+    dialog.querySelector(".reader-bar").appendChild(rbar);
+    dialog.addEventListener("scroll", function () {
+      var max = dialog.scrollHeight - dialog.clientHeight;
+      rbar.style.setProperty("--read", max > 0 ? (dialog.scrollTop / max).toFixed(4) : 0);
+    }, { passive: true });
 
     var meta = dialog.querySelector(".reader-meta");
     var title = dialog.querySelector("#reader-title");
@@ -964,6 +972,57 @@
       points.rotation.set(my * 0.12, mx * 0.18, -spin * 0.6);
       renderer.render(scene, camera);
     })();
+  })();
+
+  // =====================================================================
+  // Reading aids on the Builds page: a thin progress bar and, on wide
+  // screens, a sticky table of contents that marks the essay you're in.
+  // =====================================================================
+  (function readingAids() {
+    var essays = document.querySelector(".builds-page .essays");
+    if (!essays) return;
+    var bar = document.createElement("div");
+    bar.className = "read-progress";
+    bar.setAttribute("aria-hidden", "true");
+    document.body.appendChild(bar);
+
+    var articles = Array.prototype.slice.call(essays.querySelectorAll("article.narrative[id]"));
+    if (articles.length) {
+      var toc = document.createElement("nav");
+      toc.className = "toc";
+      toc.setAttribute("aria-label", "Team builds on this page");
+      var html = '<p class="label">On this page</p><ol>';
+      articles.forEach(function (a) {
+        var label = (a.querySelector(".narrative-head .label") || {}).textContent || "";
+        var h = a.querySelector("h2");
+        var title = h ? (h.lastChild && h.lastChild.nodeType === 3 ? h.lastChild.textContent : h.textContent) : "";
+        html += '<li><a href="#' + a.id + '"><span>' + label.split("·")[0].trim() + "</span>" + title.trim() + "</a></li>";
+      });
+      toc.innerHTML = html + "</ol>";
+      essays.insertBefore(toc, essays.firstChild);
+      essays.classList.add("has-toc");
+
+      var links = Array.prototype.slice.call(toc.querySelectorAll("a"));
+      if ("IntersectionObserver" in window) {
+        var io = new IntersectionObserver(function (entries) {
+          entries.forEach(function (en) {
+            if (!en.isIntersecting) return;
+            links.forEach(function (l) { l.classList.toggle("is-current", l.getAttribute("href") === "#" + en.target.id); });
+          });
+        }, { rootMargin: "-35% 0px -60% 0px" });
+        articles.forEach(function (a) { io.observe(a); });
+      }
+    }
+
+    function update() {
+      var r = essays.getBoundingClientRect();
+      var total = r.height - window.innerHeight * 0.6;
+      var p = total > 0 ? Math.min(Math.max(-r.top / total, 0), 1) : 0;
+      bar.style.setProperty("--read", p.toFixed(4));
+    }
+    window.addEventListener("scroll", function () { requestAnimationFrame(update); }, { passive: true });
+    window.addEventListener("resize", update);
+    update();
   })();
 
   var stage = document.querySelector(".host-stage");
