@@ -110,7 +110,7 @@ p {
   font-weight: 500;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--amber);
+  color: var(--mist);
 }
 
 .label .dim {
@@ -164,7 +164,7 @@ p {
 }
 
 .wordmark span {
-  color: var(--amber);
+  color: var(--mist);
 }
 
 .site-nav ul {
@@ -289,7 +289,7 @@ p {
 }
 
 .ring:nth-of-type(odd) {
-  stroke: var(--amber);
+  stroke: var(--mist);
   opacity: 0.4;
 }
 
@@ -421,7 +421,7 @@ p {
   max-width: 36rem;
   margin: 0;
   padding-left: 1.25rem;
-  border-left: 2px solid var(--amber);
+  border-left: 2px solid var(--mist);
 }
 
 .epigraph p {
@@ -910,7 +910,7 @@ p {
 }
 
 .chip-row a:hover {
-  border-color: var(--amber);
+  border-color: var(--mist);
   color: var(--gold);
 }
 
@@ -933,8 +933,8 @@ p {
 }
 
 .journal-shelf:target {
-  border-color: var(--amber);
-  box-shadow: 0 0 0 1px var(--amber), 0 0 30px rgb(143 163 192 / 25%);
+  border-color: var(--mist);
+  box-shadow: 0 0 0 1px var(--mist), 0 0 30px rgb(143 163 192 / 25%);
 }
 
 .shelf-head h2 {
@@ -952,7 +952,7 @@ p {
 
 .entry-card {
   padding: 1rem 1.15rem;
-  border-left: 2px solid var(--amber);
+  border-left: 2px solid var(--mist);
   background: rgb(9 11 16 / 55%);
 }
 
@@ -1062,7 +1062,7 @@ p {
 }
 
 .host-card:hover {
-  border-color: var(--amber);
+  border-color: var(--mist);
   color: var(--bone);
   transform: translateY(-3px);
 }
@@ -1216,7 +1216,7 @@ p {
   font-size: 0.75rem;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: var(--amber);
+  color: var(--mist);
 }
 
 .member-meta dd {
@@ -1363,7 +1363,7 @@ h3 {
   font-weight: 600;
   letter-spacing: 0.16em;
   text-transform: lowercase; /* small caps render lowercase as engraved caps */
-  color: var(--amber);
+  color: var(--mist);
 }
 
 .label .dim {
@@ -1540,7 +1540,7 @@ h3 {
 }
 
 .ring:nth-of-type(odd) {
-  stroke: var(--amber);
+  stroke: var(--mist);
   opacity: 0.45;
 }
 
@@ -2937,3 +2937,142 @@ html .note-dot .dot-date,
 html .legend-role,
 html .orbit-d { font-size: var(--fs-caption); letter-spacing: 0.08em; }
 html .slice-role { font-family: var(--font-label); letter-spacing: 0.12em; }
+
+/* =====================================================================
+   COLOR (design-refresh). Night palette + ONE warm Westworld accent.
+   --copper: links, focus, active nav, finished builds, calls to action.
+   --brass: its lighter partner for hover/glow. --oxblood: rare emphasis,
+   never for text. Everything else stays navy, charcoal and white.
+   ===================================================================== */
+
+html:root {
+  --mist: #8fa3c0;          /* blue-grey label tone (was misnamed --amber) */
+  --copper: #c9946a;        /* dusty copper, 7.6:1 on the page background */
+  --brass: #dcb98a;         /* lighter brass for hover and glow */
+  --oxblood: #8e2f35;       /* sparing deep red, decorative only */
+  --amber: var(--copper);   /* the old name now means what it says */
+  --taupe: #8b93a0;         /* was #6c7482 (4.2:1); now 6.2:1 */
+  --accent: var(--copper);
+}
+
+a {
+  color: var(--copper);
+  text-decoration-color: rgb(201 148 106 / 45%);
+}
+
+a:hover {
+  color: var(--brass);
+  text-decoration-color: currentColor;
+}
+
+:focus-visible {
+  outline: 2px solid var(--copper);
+  outline-offset: 3px;
+}
+
+.site-nav a:hover,
+.site-nav a[aria-current="page"] {
+  color: var(--copper);
+}
+
+.site-nav a[aria-current="page"] {
+  text-decoration-color: var(--copper);
+  text-decoration-thickness: 1px;
+}
+
+/* calls to action */
+.text-link,
+.back-link,
+.enter {
+  color: var(--copper);
+}
+
+.essay summary {
+  border-color: rgb(201 148 106 / 55%);
+  color: var(--copper);
+}
+
+.essay summary:hover,
+.essay summary:focus-visible {
+  border-color: var(--copper);
+  color: var(--brass);
+}
+
+.play-button {
+  border-color: var(--copper);
+  color: #120d09;
+  background: var(--copper);
+}
+
+.play-button:hover {
+  background: var(--brass);
+}
+
+.score-toggle.is-on {
+  border-color: var(--copper);
+  color: var(--copper);
+}
+
+/* finished builds glow warm; unfinished stay cold and dashed */
+.layer {
+  --lit: color-mix(in srgb, var(--brass) calc(var(--i) * 11%), #6b4a30);
+}
+
+.layer.is-done {
+  stroke: #120d09;
+}
+
+.note-dot.is-done .dot {
+  color: #120d09;
+  background: var(--copper);
+  box-shadow: 0 0 14px rgb(201 148 106 / 45%);
+}
+
+.note-dot.is-done .dot-date {
+  color: var(--copper);
+}
+
+.note-dot.is-selected .dot {
+  box-shadow: 0 0 0 3px var(--ink), 0 0 0 5px var(--brass);
+}
+
+.card-links a,
+.layer-card .card-state {
+  color: var(--copper);
+}
+
+/* citations: present but quiet */
+.cite,
+a.cite {
+  color: var(--taupe);
+  text-decoration: none;
+  border-bottom: 1px dotted rgb(139 147 160 / 55%);
+}
+
+a.cite:hover {
+  color: var(--copper);
+  border-bottom-color: var(--copper);
+}
+
+/* team-build markers and the occasional rule use the deep red */
+.prose .standalone-q {
+  border-left-color: var(--oxblood);
+}
+
+.boot-enter:hover,
+.boot-enter:focus-visible {
+  border-color: var(--copper);
+}
+
+.reveal-bar {
+  background: var(--copper);
+}
+
+/* contrast fixes from the audit: dim separators and captions */
+.label .dim,
+.dim,
+.dim-link,
+.member-meta .tbd,
+.feature figcaption {
+  color: var(--taupe);
+}
