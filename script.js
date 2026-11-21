@@ -750,6 +750,7 @@
     var T = window.THREE;
     var renderer;
     try { renderer = new T.WebGLRenderer({ canvas: canvas, antialias: false, alpha: false, powerPreference: "high-performance" }); } catch (e) { return; }
+    section.classList.add("is-ready"); // hold the space now; particles appear when the photo arrives
 
     var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     var small = window.innerWidth < 700;
@@ -916,7 +917,7 @@
 
       points = new T.Points(geo, mat);
       scene.add(points);
-      section.classList.add("is-ready");
+      section.classList.add("is-loaded");
       onScroll();
     }
 

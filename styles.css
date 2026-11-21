@@ -2823,3 +2823,12 @@ a.orbit-label:focus-visible .orbit-n {
 .dissolve-section + .section::before {
   display: none;
 }
+
+.dissolve-gl {
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+
+.dissolve-section.is-loaded .dissolve-gl {
+  opacity: 1;
+}
