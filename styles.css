@@ -2222,3 +2222,155 @@ button {
 .maze-section + .section::before {
   display: none;
 }
+
+/* ---------- boot-up intro ---------- */
+
+/* early cover, before script.js runs; fades by itself if the script never arrives */
+html.intro-pending::after {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: var(--ink);
+  content: "";
+  animation: cover-fail-safe 0.4s ease 4s forwards;
+}
+
+@keyframes cover-fail-safe {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+html.waking body > main,
+html.waking body > .site-header {
+  filter: blur(10px) brightness(0.6);
+}
+
+body > main,
+body > .site-header {
+  transition: filter 1.4s ease;
+}
+
+.boot {
+  position: fixed;
+  inset: 0;
+  z-index: 101;
+  cursor: pointer;
+}
+
+.boot-lid {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 50.5%;
+  background: var(--ink);
+  transition: transform 1.2s cubic-bezier(0.7, 0, 0.2, 1);
+}
+
+.boot-lid-top {
+  top: 0;
+  background: linear-gradient(180deg, var(--ink) 75%, #0d1526);
+}
+
+.boot-lid-bottom {
+  bottom: 0;
+  background: linear-gradient(0deg, var(--ink) 75%, #0d1526);
+}
+
+.boot.is-opening .boot-lid-top {
+  transform: translateY(-101%);
+}
+
+.boot.is-opening .boot-lid-bottom {
+  transform: translateY(101%);
+}
+
+.boot-screen {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: min(36rem, calc(100% - 2.5rem));
+  transform: translate(-50%, -50%);
+  transition: opacity 0.4s ease;
+}
+
+.boot.is-opening .boot-screen,
+.boot.is-opening .boot-skip {
+  opacity: 0;
+}
+
+.boot-kicker {
+  margin: 0 0 1.5rem;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid var(--line);
+  font-size: 0.75rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--taupe);
+}
+
+.boot-lines {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: clamp(0.95rem, 2.4vw, 1.15rem);
+  letter-spacing: 0.12em;
+  line-height: 2;
+  text-transform: uppercase;
+  color: var(--ash);
+}
+
+.boot-lines li:first-child {
+  margin-bottom: 0.9rem;
+  font-size: clamp(1.4rem, 4.2vw, 2rem);
+  letter-spacing: 0.04em;
+  text-transform: none;
+  font-style: italic;
+  color: var(--bone);
+}
+
+.boot-lines li:last-child:not(:first-child) {
+  margin-top: 0.9rem;
+  color: var(--bone);
+}
+
+.boot-cursor {
+  display: inline-block;
+  width: 0.6rem;
+  height: 1.1rem;
+  margin-top: 0.4rem;
+  background: var(--bone);
+  animation: boot-blink 0.9s steps(1) infinite;
+}
+
+@keyframes boot-blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.boot-skip {
+  position: absolute;
+  right: 1.25rem;
+  bottom: 1.25rem;
+  padding: 0.45rem 1rem;
+  border: 1px solid var(--line);
+  font-family: inherit;
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ash);
+  background: none;
+  cursor: pointer;
+  transition: opacity 0.3s ease;
+}
+
+.boot-skip:hover {
+  border-color: var(--ash);
+  color: var(--bone);
+}
+
+.boot.is-opening {
+  pointer-events: none;
+}

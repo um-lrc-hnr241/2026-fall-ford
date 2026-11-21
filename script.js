@@ -7,6 +7,79 @@
   document.documentElement.classList.add("js");
 
   // =====================================================================
+  // Boot-up intro (home page, first visit per session): the site comes
+  // online like a host. Typed diagnostic lines, then the "eyes" open onto
+  // the page. Tap, any key or "Skip" ends it at once. The inline script in
+  // <head> covers the page early so nothing flashes before this runs.
+  // =====================================================================
+  (function bootIntro() {
+    var root = document.documentElement;
+    if (!root.classList.contains("intro-pending")) return;
+    try { sessionStorage.setItem("ford-booted", "1"); } catch (e) {}
+
+    var done = 0, today = new Date();
+    ["2026-09-11", "2026-09-25", "2026-10-09", "2026-10-23", "2026-11-06", "2026-11-20", "2026-12-04", "2026-12-18"]
+      .forEach(function (d) { if (new Date(d + "T00:00:00") <= today) done++; });
+
+    var lines = [
+      "Bringing yourself back online.",
+      "Host: Team Ford · HNR 241 · Fall 2026",
+      "Cognition … 6 hosts responding",
+      "Builds loaded … " + done + " of 8",
+      "Reveries … present",
+      "Analysis complete. Welcome to the workshop."
+    ];
+
+    var boot = document.createElement("div");
+    boot.className = "boot";
+    boot.setAttribute("role", "dialog");
+    boot.setAttribute("aria-label", "Intro");
+    boot.innerHTML =
+      '<div class="boot-lid boot-lid-top"></div><div class="boot-lid boot-lid-bottom"></div>' +
+      '<div class="boot-screen"><p class="boot-kicker">Diagnostic mode</p><ol class="boot-lines"></ol><span class="boot-cursor" aria-hidden="true"></span></div>' +
+      '<button class="boot-skip" type="button">Skip</button>';
+    document.body.appendChild(boot);
+    root.classList.add("waking");
+    root.classList.remove("intro-pending");
+
+    var list = boot.querySelector(".boot-lines");
+    var timers = [];
+    var finished = false;
+
+    function later(fn, ms) { timers.push(setTimeout(fn, ms)); }
+
+    function typeLine(text, i, at) {
+      var li = document.createElement("li");
+      later(function () {
+        list.appendChild(li);
+        for (var c = 1; c <= text.length; c++) {
+          (function (c) { later(function () { li.textContent = text.slice(0, c); }, c * 24); })(c);
+        }
+      }, at);
+      return at + text.length * 24 + (i === 0 ? 700 : 320);
+    }
+
+    var t = 450;
+    lines.forEach(function (line, i) { t = typeLine(line, i, t); });
+    later(open, t + 500);
+
+    function open() {
+      if (finished) return;
+      finished = true;
+      timers.forEach(clearTimeout);
+      boot.classList.add("is-opening");
+      root.classList.remove("waking");
+      window.removeEventListener("keydown", skip, true);
+      setTimeout(function () { boot.remove(); }, 1300);
+    }
+
+    function skip() { open(); }
+    boot.querySelector(".boot-skip").addEventListener("click", skip);
+    boot.addEventListener("pointerdown", function (e) { if (!e.target.closest(".boot-skip")) skip(); });
+    window.addEventListener("keydown", skip, true);
+  })();
+
+  // =====================================================================
   // Home hero: Dolores at the puddle. Scrolling through the hero reveals
   // the maze on her reflection (--mix 0→1). With WebGL, the water ripples
   // and two droplets send out rings; without it, the two <img> layers
