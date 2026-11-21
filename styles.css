@@ -3423,3 +3423,232 @@ html:root {
   mask: var(--icon-sleep) center / contain no-repeat;
   content: "";
 }
+
+/* =====================================================================
+   NAVIGATION & PAGE FEEL (design-refresh)
+   ===================================================================== */
+
+/* 44px tap targets on every control */
+.site-nav a,
+.wordmark,
+.text-link,
+.back-link,
+.chip-row a,
+.play-button,
+.score-toggle,
+.essay summary,
+.reader-nav button,
+.boot-silent,
+.pie-legend a,
+.footer-nav a,
+.member-nav a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+}
+
+.score-toggle {
+  min-width: 44px;
+  justify-content: center;
+}
+
+.site-nav a[aria-current] {
+  color: var(--copper);
+  text-decoration: underline;
+  text-decoration-color: var(--copper);
+  text-underline-offset: 0.45em;
+}
+
+/* the Menu button only appears on phones */
+.menu-toggle {
+  display: none;
+}
+
+@media (max-width: 40rem) {
+  .site-header {
+    position: sticky;
+    top: 0;
+  }
+
+  .site-header.has-menu .wrap {
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0 1rem;
+    padding-top: 0.35rem;
+    padding-bottom: 0.35rem;
+  }
+
+  .site-header.has-menu .wordmark {
+    margin-right: auto;
+  }
+
+  .menu-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    min-height: 44px;
+    padding: 0 0.2rem 0 0.6rem;
+    border: 0;
+    font-family: var(--font-label);
+    font-size: var(--fs-label);
+    letter-spacing: var(--track-label);
+    text-transform: lowercase;
+    color: var(--bone);
+    background: none;
+    cursor: pointer;
+  }
+
+  .menu-icon {
+    display: grid;
+    gap: 5px;
+    width: 18px;
+  }
+
+  .menu-icon i {
+    display: block;
+    height: 1.5px;
+    background: currentColor;
+    transition: transform var(--dur-1) var(--ease);
+  }
+
+  .menu-open .menu-icon i:first-child { transform: translateY(3.25px) rotate(45deg); }
+  .menu-open .menu-icon i:last-child { transform: translateY(-3.25px) rotate(-45deg); }
+
+  .site-header.has-menu .site-nav,
+  .site-header.has-menu .score-toggle {
+    display: none;
+  }
+
+  .site-header.has-menu.menu-open .site-nav {
+    display: block;
+    flex-basis: 100%;
+    padding: 0.4rem 0 0.8rem;
+    border-top: 1px solid var(--line);
+  }
+
+  .site-header.has-menu.menu-open .site-nav ul {
+    display: grid;
+    gap: 0;
+  }
+
+  .site-header.has-menu.menu-open .site-nav a {
+    display: flex;
+    min-height: 52px;
+    border-bottom: 1px solid var(--line);
+    font-size: 1.2rem;
+  }
+
+  .site-header.has-menu.menu-open .score-toggle {
+    display: inline-flex;
+    margin: 0.2rem 0 0.9rem;
+  }
+}
+
+/* consistent page headers: label, title, a short copper rule, lede */
+.page-head h1::after {
+  display: block;
+  width: 3.2rem;
+  height: 1px;
+  margin-top: 1.4rem;
+  background: var(--copper);
+  content: "";
+}
+
+.page-head {
+  padding-bottom: clamp(2.5rem, 5vw, 3.5rem);
+}
+
+/* hover and focus on every card, slice and list link */
+.host-card:hover,
+.host-card:focus-visible,
+.journal-shelf:hover,
+.journal-shelf:focus-within {
+  border-color: rgb(201 148 106 / 70%);
+}
+
+.host-card:hover .host-name,
+.host-card:focus-visible .host-name {
+  color: var(--brass);
+}
+
+.pie-legend a:hover .legend-name,
+.pie-legend a:focus-visible .legend-name {
+  color: var(--copper);
+}
+
+.slice-link:focus-visible .slice {
+  stroke: var(--copper);
+  stroke-width: 3;
+}
+
+.layer:focus-visible {
+  stroke: var(--copper);
+}
+
+.chip-row a:hover,
+.chip-row a:focus-visible {
+  border-color: var(--copper);
+  color: var(--copper);
+}
+
+/* footer */
+.site-footer .wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 2rem 3rem;
+  padding-top: 3rem;
+  padding-bottom: 3.5rem;
+}
+
+.footer-brand p {
+  margin: 0.35rem 0 0;
+  font-size: var(--fs-caption);
+  letter-spacing: var(--track-label);
+  color: var(--taupe);
+}
+
+.footer-nav ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.footer-nav a {
+  color: var(--ash);
+  text-decoration: none;
+}
+
+.footer-nav a:hover {
+  color: var(--copper);
+}
+
+/* gentle cross-page fade where the browser supports it */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation-duration: 0.35s;
+  animation-timing-function: var(--ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  @view-transition {
+    navigation: none;
+  }
+}
+
+.wordmark {
+  display: inline-block;
+  line-height: 44px;
+}
+
+.wordmark span {
+  margin: 0 0.3em;
+}

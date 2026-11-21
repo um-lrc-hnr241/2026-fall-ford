@@ -1050,6 +1050,33 @@
     });
   })();
 
+  // =====================================================================
+  // Mobile menu: under 40rem the nav folds behind a "Menu" button.
+  // Without JavaScript the nav simply wraps, as before.
+  // =====================================================================
+  (function mobileMenu() {
+    var header = document.querySelector(".site-header");
+    var nav = header && header.querySelector(".site-nav");
+    if (!nav) return;
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "menu-toggle";
+    btn.setAttribute("aria-expanded", "false");
+    btn.setAttribute("aria-controls", "site-menu");
+    btn.innerHTML = '<span class="menu-icon" aria-hidden="true"><i></i><i></i></span><span class="menu-label">Menu</span>';
+    nav.id = "site-menu";
+    header.querySelector(".wrap").insertBefore(btn, nav);
+    header.classList.add("has-menu");
+    function set(open) {
+      header.classList.toggle("menu-open", open);
+      btn.setAttribute("aria-expanded", open ? "true" : "false");
+      btn.querySelector(".menu-label").textContent = open ? "Close" : "Menu";
+    }
+    btn.addEventListener("click", function () { set(!header.classList.contains("menu-open")); });
+    document.addEventListener("keydown", function (e) { if (e.key === "Escape" && header.classList.contains("menu-open")) { set(false); btn.focus(); } });
+    nav.addEventListener("click", function (e) { if (e.target.closest("a")) set(false); });
+  })();
+
   var stage = document.querySelector(".host-stage");
   if (!stage) return;
 
