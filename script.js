@@ -445,7 +445,7 @@
 
       function frame(now) {
         requestAnimationFrame(frame);
-        if (!visible) return;
+        if (!visible || document.hidden) return;
         var dpr = Math.min(window.devicePixelRatio || 1, 2);
         var w = Math.round(canvas.clientWidth * dpr);
         var h = Math.round(canvas.clientHeight * dpr);
@@ -760,11 +760,34 @@
   (function doloresDissolve() {
     var section = document.querySelector(".dissolve-section");
     var canvas = section && section.querySelector(".dissolve-gl");
-    if (!section || !canvas || !window.THREE) return;
+    if (!section || !canvas) return;
+    // only reserve the scene's space if this device can draw it
+    var probe = document.createElement("canvas");
+    if (!(probe.getContext("webgl") || probe.getContext("experimental-webgl"))) return;
+    section.classList.add("is-ready"); // hold the space now; particles appear when ready
+
+    // three.js (118 KB) is fetched only when the scene is about to arrive
+    var THREE_URL = "https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js";
+    function whenThree(cb) {
+      if (window.THREE) return cb();
+      var sc = document.createElement("script");
+      sc.src = THREE_URL;
+      sc.onload = cb;
+      document.head.appendChild(sc);
+    }
+    var started = false;
+    var near = new IntersectionObserver(function (en) {
+      if (!en[0].isIntersecting || started) return;
+      started = true;
+      near.disconnect();
+      whenThree(init);
+    }, { rootMargin: "1200px 0px" });
+    near.observe(section);
+
+    function init() {
     var T = window.THREE;
     var renderer;
     try { renderer = new T.WebGLRenderer({ canvas: canvas, antialias: false, alpha: false, powerPreference: "high-performance" }); } catch (e) { return; }
-    section.classList.add("is-ready"); // hold the space now; particles appear when the photo arrives
 
     var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     var small = window.innerWidth < 700;
@@ -837,7 +860,8 @@
     }
 
     var img = new Image();
-    img.src = "images/dolores-maze.jpg";
+    var heroMaze = document.querySelector(".hero-img-maze");
+    img.src = (heroMaze && heroMaze.currentSrc) || "images/dolores-maze.jpg";
     img.decode().then(build).catch(function () {});
 
     var uniforms, points;
@@ -968,7 +992,7 @@
     var clock = new T.Clock();
     (function frame() {
       requestAnimationFrame(frame);
-      if (!visible || !uniforms) return;
+      if (!visible || !uniforms || document.hidden) return;
       resize();
       smooth += (progress - smooth) * (reduce ? 0.2 : 0.06);
       mx += (tx - mx) * 0.04; my += (ty - my) * 0.04;
@@ -978,6 +1002,7 @@
       points.rotation.set(my * 0.12, mx * 0.18, -spin * 0.6);
       renderer.render(scene, camera);
     })();
+    }
   })();
 
   // =====================================================================
