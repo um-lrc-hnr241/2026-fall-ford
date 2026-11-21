@@ -1888,3 +1888,88 @@ button {
 .slice-name {
   font-weight: 400;
 }
+
+/* ---------- individual builds on member pages ---------- */
+
+.entry-title {
+  margin: 0 0 0.6rem;
+  color: var(--ash);
+  font-style: italic;
+}
+
+.essay {
+  margin-top: 0.25rem;
+}
+
+.essay summary {
+  display: inline-block;
+  padding: 0.35rem 0.9rem;
+  border: 1px solid var(--line);
+  font-size: 0.8rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--bone);
+  cursor: pointer;
+  list-style: none;
+}
+
+.essay summary::-webkit-details-marker {
+  display: none;
+}
+
+.essay summary::after {
+  margin-left: 0.6rem;
+  content: "+";
+}
+
+.essay[open] summary::after {
+  content: "\2212";
+}
+
+.essay summary:hover {
+  border-color: var(--ash);
+}
+
+.essay .prose {
+  margin-top: 1.5rem;
+}
+
+.essay .prose p {
+  color: #d9dce2;
+}
+
+.passage {
+  margin: 0 0 1.75rem;
+  padding: 1.1rem 1.3rem;
+  border-left: 1px solid var(--ash);
+  background: rgb(27 42 68 / 22%);
+  font-size: 1.05rem;
+}
+
+.passage p {
+  margin: 0.6rem 0 0;
+}
+
+/* in Build 6, the question that turns the essay */
+.prose .standalone-q {
+  margin: 2rem 0;
+  padding-left: 1.25rem;
+  border-left: 1px solid var(--ash);
+  font-size: 1.35rem;
+  font-style: italic;
+  color: var(--bone);
+}
+
+.dim-link {
+  margin: 0 0.4rem;
+  color: var(--taupe);
+}
+
+.prose .passage p:first-of-type::first-letter {
+  float: none;
+  margin: 0;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
+  color: inherit;
+}
